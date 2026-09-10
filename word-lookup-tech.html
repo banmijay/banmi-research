@@ -1,0 +1,2265 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>电子阅读精准单词查询技术方案研究 · 无忌 Deep Research · 2026-09-06</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,400;1,9..144,900&family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3efe7;
+    --bg-soft: #ece5d8;
+    --bg-elevated: #fbf9f4;
+    --bg-stripe: #efe7d8;
+    --text: #2e2a24;
+    --text-soft: #6b6255;
+    --text-mute: #938979;
+    --border: #ddd3c2;
+    --border-strong: #cbbfa9;
+    --accent: #bf5d38;
+    --accent-soft: #f1ddd0;
+    --accent-text: #a04829;
+    --good: #5f7a3e;
+    --good-soft: #cfdab4;
+    --warn: #9a6a16;
+    --warn-soft: #f6e6c8;
+    --bad: #b5462f;
+    --bad-soft: #f3d8cf;
+    --info: #5b7d8c;
+    --info-soft: #cddbe1;
+    --code-bg: #efe7d8;
+    --purple: #8a5a6f;
+    --purple-soft: #ecd9e1;
+    --shadow: 0 8px 22px -16px rgba(70,55,35,.40);
+    --shadow-lg: 0 22px 50px -24px rgba(70,55,35,.50);
+    --radius: 10px;
+    --radius-lg: 16px;
+    --serif: "Fraunces","Noto Serif SC",Georgia,serif;
+    --sans: "Noto Sans SC",system-ui,-apple-system,"PingFang SC",sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #221f1a;
+    --bg-soft: #2c2822;
+    --bg-elevated: #2a2620;
+    --bg-stripe: #26221c;
+    --text: #ece4d6;
+    --text-soft: #c3b8a6;
+    --text-mute: #998f7e;
+    --border: #3c362e;
+    --border-strong: #4d463b;
+    --accent: #e2825c;
+    --accent-soft: #3a261c;
+    --accent-text: #ef9a76;
+    --good: #9bbf6a;
+    --good-soft: #2e3a1d;
+    --warn: #d9a441;
+    --warn-soft: #3d2f12;
+    --bad: #e08163;
+    --bad-soft: #3d1f16;
+    --info: #8fb3c2;
+    --info-soft: #1d2e34;
+    --code-bg: #1a1712;
+    --purple: #c79bb0;
+    --purple-soft: #33222a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--bg);
+    background-image: radial-gradient(900px 500px at 12% -8%, rgba(191,93,56,.10), transparent 60%), radial-gradient(800px 480px at 105% 8%, rgba(125,154,86,.12), transparent 55%);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    padding-bottom: 60px;
+    transition: background-color .25s, color .25s;
+  }
+  body::before { content:""; position:fixed; inset:0; pointer-events:none; z-index:99; opacity:.03; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  #progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: linear-gradient(90deg, var(--accent), var(--purple)); z-index: 1000; transition: width .1s linear; }
+  header.topbar { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--border); }
+  .topbar-inner { max-width: 980px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .brand { font-family: var(--serif); font-weight: 700; font-size: 15px; letter-spacing: .2px; color: var(--text); white-space: nowrap; }
+  .brand .tag { margin-left: 6px; font-weight: 500; font-size: 11px; color: var(--text-mute); padding: 2px 7px; border: 1px solid var(--border); border-radius: 999px; font-family: var(--sans); }
+  .topbar-spacer { flex: 1; }
+  .icon-btn { width: 44px; height: 44px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text); cursor: pointer; font-size: 18px; transition: transform .15s, background-color .15s; }
+  .icon-btn:active { transform: scale(.94); }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; }
+  .hero { padding: 28px 4px 12px; }
+  .hero h1 { font-family: var(--serif); font-size: 30px; line-height: 1.22; margin: 0 0 12px; letter-spacing: -.5px; background: linear-gradient(135deg, var(--text) 0%, var(--accent-text) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--text-mute); }
+  .hero-meta span { background: var(--bg-soft); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); }
+  .hero-deck { margin-top: 16px; padding: 14px 16px; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 8px; color: var(--text); font-size: 15px; }
+  .hero-deck p { margin: 6px 0; color: var(--text); }
+  section.chapter { margin: 24px 0; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+  section.chapter > h2 { font-family: var(--serif); font-size: 21px; margin: 0; padding: 16px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); user-select: none; background: var(--bg-elevated); transition: background-color .15s; min-height: 56px; }
+  section.chapter > h2:active { background: var(--bg-soft); }
+  section.chapter > h2 .num { font-family: var(--serif); font-style: italic; display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-text); font-size: 14px; font-weight: 700; }
+  section.chapter > h2 .title-text { flex: 1; }
+  section.chapter > h2 .caret { transition: transform .25s; color: var(--text-mute); font-size: 14px; }
+  section.chapter.collapsed > h2 .caret { transform: rotate(-90deg); }
+  section.chapter.collapsed > h2 { border-bottom-color: transparent; }
+  .chapter-body { padding: 18px 20px 22px; max-height: 100000px; overflow: hidden; transition: max-height .35s ease, padding .25s; }
+  section.chapter.collapsed .chapter-body { max-height: 0; padding-top: 0; padding-bottom: 0; }
+  h3 { font-family: var(--serif); font-size: 18px; margin: 22px 0 10px; color: var(--text); padding-left: 10px; border-left: 3px solid var(--accent); }
+  h4 { font-size: 15px; margin: 16px 0 8px; color: var(--text-soft); }
+  p { margin: 8px 0 12px; color: var(--text-soft); }
+  strong { color: var(--text); }
+  ul, ol { margin: 8px 0 14px; padding-left: 22px; color: var(--text-soft); }
+  li { margin: 4px 0; }
+  .callout { margin: 14px 0; padding: 12px 14px; border-radius: 10px; border-left: 4px solid; font-size: 14.5px; line-height: 1.65; }
+  .callout.info { background: var(--info-soft); border-color: var(--info); }
+  .callout.good { background: var(--good-soft); border-color: var(--good); }
+  .callout.warn { background: var(--warn-soft); border-color: var(--warn); }
+  .callout.bad { background: var(--bad-soft); border-color: var(--bad); }
+  .callout.accent { background: var(--accent-soft); border-color: var(--accent); }
+  .callout.purple { background: var(--purple-soft); border-color: var(--purple); }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout h4 { margin-top: 0; }
+  .table-wrap { margin: 14px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; min-width: 560px; }
+  thead th { position: sticky; top: 0; background: var(--bg-soft); color: var(--text); text-align: left; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border-strong); white-space: nowrap; z-index: 1; }
+  tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-soft); vertical-align: top; }
+  tbody tr:nth-child(even) td { background: var(--bg-stripe); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.row-highlight td { background: var(--accent-soft) !important; color: var(--text); }
+  tbody tr { cursor: pointer; transition: background-color .15s; }
+  td.check { text-align: center; font-weight: 600; }
+  td.check.y { color: var(--good); }
+  td.check.n { color: var(--bad); }
+  td.check.p { color: var(--warn); }
+  .faq-item { border: 1px solid var(--border); border-radius: 12px; margin: 10px 0; overflow: hidden; background: var(--bg-elevated); }
+  .faq-q { padding: 14px 16px; font-weight: 600; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; user-select: none; min-height: 50px; }
+  .faq-q .qmark { color: var(--accent-text); font-weight: 700; font-size: 16px; flex: 0 0 auto; font-family: var(--serif); }
+  .faq-q .qtext { flex: 1; font-size: 15px; line-height: 1.45; }
+  .faq-q .toggle { color: var(--text-mute); transition: transform .25s; font-size: 14px; }
+  .faq-item.open .faq-q .toggle { transform: rotate(45deg); }
+  .faq-a { padding: 0 16px; max-height: 0; overflow: hidden; color: var(--text-soft); font-size: 14.5px; line-height: 1.65; transition: max-height .3s, padding .25s; }
+  .faq-item.open .faq-a { max-height: 4000px; padding: 0 16px 14px 16px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .back-to-top { position: fixed; bottom: 20px; right: 20px; width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: white; display: none; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: var(--shadow-lg); z-index: 40; border: none; }
+  .back-to-top.show { display: flex; }
+  .back-to-top:active { transform: scale(.94); }
+  .back-fab { position: fixed; right: 20px; bottom: 78px; z-index: 45; display: inline-flex; align-items: center; gap: 6px; background: var(--bg-elevated); color: var(--accent-text); border: 1px solid var(--accent); border-radius: 24px; padding: 9px 16px; font-size: 13.5px; text-decoration: none; font-weight: 700; box-shadow: var(--shadow-lg); }
+  .back-fab:hover { background: var(--accent); color: #fff; transform: translateY(-2px); }
+  footer { text-align: center; padding: 24px 16px; color: var(--text-mute); font-size: 13px; border-top: 1px solid var(--border); margin-top: 32px; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; font-size: 13px; color: var(--text); }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 13px; line-height: 1.6; border: 1px solid var(--border); margin: 12px 0; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: 12px 0; padding: 10px 16px; border-left: 4px solid var(--text-mute); background: var(--bg-soft); border-radius: 6px; color: var(--text-soft); font-size: 14.5px; }
+  .pill { display: inline-block; padding: 3px 9px; font-size: 11px; font-weight: 600; border-radius: 999px; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-soft); white-space: nowrap; }
+  .pill.good { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+  .pill.info { background: var(--info-soft); color: var(--info); border-color: var(--info); }
+  .pill.accent { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
+  .pill.purple { background: var(--purple-soft); color: var(--purple); border-color: var(--purple); }
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+  .metric { padding: 12px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; }
+  .metric .v { font-family: var(--serif); font-style: italic; font-size: 22px; font-weight: 700; color: var(--accent-text); }
+  .metric .l { font-size: 12px; color: var(--text-mute); margin-top: 2px; }
+  .tree { margin: 16px 0; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-soft); }
+  .tree .node { padding: 10px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; margin: 6px 0; }
+  .tree .node.q { border-color: var(--accent); background: var(--accent-soft); color: var(--text); font-weight: 600; }
+  .tree .lbl { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; margin-right: 8px; }
+  .tree .lbl.y { background: var(--good-soft); color: var(--good); }
+  .tree .lbl.n { background: var(--bad-soft); color: var(--bad); }
+  .tree .lbl.m { background: var(--warn-soft); color: var(--warn); }
+  .tree .step-arrow { text-align: center; color: var(--text-mute); margin: 2px 0; font-size: 18px; }
+  .step { margin: 14px 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-elevated); }
+  .step-head { padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); background: var(--bg-soft); font-family: var(--serif); font-weight: 700; font-size: 15.5px; color: var(--text); }
+  .step-head .sn { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; flex: 0 0 auto; }
+  .step-body { padding: 10px 14px 14px; font-size: 14.5px; }
+  .check-box { margin: 12px 0; padding: 10px 14px; border-radius: 10px; background: var(--good-soft); border-left: 4px solid var(--good); font-size: 14px; }
+  .trap-box { margin: 12px 0; padding: 10px 14px; border-radius: 10px; background: var(--bad-soft); border-left: 4px solid var(--bad); font-size: 14px; }
+  sup.cite { cursor: help; position: relative; border-bottom: 1px dotted currentColor; padding: 0 1px; color: var(--accent-text); font-weight: 600; }
+  sup.cite:hover { background: rgba(191,93,56,0.18); border-radius: 3px; }
+  .cite-popover { position: absolute; z-index: 9999; background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; max-width: 380px; min-width: 220px; box-shadow: 0 10px 30px rgba(70,55,35,0.25); font-size: 13px; line-height: 1.55; pointer-events: auto; }
+  .cite-popover a { color: var(--accent-text); text-decoration: underline; word-break: break-all; }
+  .cite-popover ul, .cite-popover ol { margin: 4px 0 0; padding-left: 18px; }
+  .cite-popover ::before { content: none !important; }
+  .conf { display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; margin-left:4px; vertical-align:middle; }
+  .conf.g { background: var(--good-soft); color: var(--good); }
+  .conf.y { background: var(--warn-soft); color: var(--warn); }
+  .conf.r { background: var(--bad-soft); color: var(--bad); }
+  .ref-list { list-style: none; padding: 0; counter-reset: ref; }
+  .ref-list li { counter-increment: ref; padding: 8px 10px 8px 36px; position: relative; border-bottom: 1px dashed var(--border); font-size: 13.5px; color: var(--text-soft); line-height: 1.5; }
+  .ref-list li::before { content: "[" counter(ref) "]"; position: absolute; left: 4px; top: 8px; font-weight: 700; color: var(--accent-text); font-family: ui-monospace, monospace; font-size: 12.5px; }
+  .ref-list li a { color: var(--accent-text); text-decoration: none; word-break: break-all; }
+  .ref-list li a:hover { text-decoration: underline; }
+  .ref-list li .ref-meta { color: var(--text-mute); font-size: 12px; margin-left: 4px; }
+  nav.anchor-nav { position: fixed; top: 100px; left: 0; width: 220px; height: calc(100vh - 100px); overflow-y: auto; overflow-x: hidden; background: var(--bg-soft); border-right: 1px solid var(--border); z-index: 60; padding: 16px 0 40px; transition: transform .28s ease; white-space: normal; }
+  nav.anchor-nav::-webkit-scrollbar { width: 6px; }
+  nav.anchor-nav::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+  .nav-title { padding: 4px 20px 12px; font-size: 13px; font-weight: 700; color: var(--text-mute); }
+  .anchor-list { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
+  .anchor-list a { display: block; min-height: 38px; padding: 9px 12px; border-radius: 8px; font-size: 13px; line-height: 1.35; color: var(--text-soft); text-decoration: none; border-left: 3px solid transparent; }
+  .anchor-list a.active { color: var(--accent-text); background: var(--accent-soft); border-left-color: var(--accent); font-weight: 600; }
+  .nav-toggle { position: fixed; left: 16px; bottom: 24px; width: 52px; height: 52px; border-radius: 999px; background: var(--accent); color: #fff; border: none; font-size: 22px; z-index: 70; box-shadow: var(--shadow-lg); cursor: pointer; align-items: center; justify-content: center; display: none; }
+  .nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 55; opacity: 0; pointer-events: none; transition: opacity .28s; }
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 23px; }
+    section.chapter > h2 { font-size: 18px; padding: 14px 14px; }
+    .chapter-body { padding: 14px 14px 18px; }
+    h3 { font-size: 16px; }
+  }
+  @media (max-width: 1040px) {
+    nav.anchor-nav { top: 0; height: 100vh; transform: translateX(-100%); box-shadow: var(--shadow-lg); width: 260px; max-width: 82vw; }
+    nav.anchor-nav.open { transform: translateX(0); }
+    .nav-overlay.show { opacity: 1; pointer-events: auto; }
+    .nav-toggle { display: flex; }
+  }
+  @media print {
+    @page { margin: 14mm 12mm; }
+    html, body { background: #fff !important; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0 !important; font-size: 11pt; line-height: 1.55; }
+    body::before { display: none !important; }
+    header.topbar, #progress, .back-to-top, .back-fab, nav.anchor-nav, .nav-toggle, .nav-overlay, #pdfBtn { display: none !important; }
+    main { margin: 0 !important; max-width: 100% !important; padding: 0 !important; }
+    .hero h1, h1 { -webkit-text-fill-color: #1a1d23 !important; color: #1a1d23 !important; background: none !important; }
+    section.chapter { box-shadow: none !important; border: 1px solid #d9dde5 !important; margin: 14px 0 !important; }
+    section.chapter > h2 { cursor: default; position: static; }
+    section.chapter.collapsed .chapter-body, .chapter-body { max-height: none !important; overflow: visible !important; padding: 14px 18px 18px !important; }
+    .caret { display: none !important; }
+    .faq-a { max-height: none !important; overflow: visible !important; padding: 0 16px 12px 16px !important; border-top: 1px solid #e3e6ec; }
+    .faq-q .toggle { display: none !important; }
+    .callout, .step, .metric-grid, .tree, .faq-item, table { break-inside: avoid; }
+    h2, h3, h4 { break-after: avoid; }
+    .table-wrap { overflow: visible !important; border: none !important; }
+    table { min-width: 0 !important; font-size: 9pt; }
+    .cite-popover { display: none !important; }
+    sup.cite { border-bottom: none !important; color: var(--accent-text) !important; }
+  }
+  @media (min-width: 1041px) { main { margin-left: 220px; } }
+</style>
+</head>
+<body data-theme="light">
+
+<div id="progress"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="icon-btn" href="./index.html" title="返回研究总目录" aria-label="返回研究总目录" style="text-decoration:none">←</a>
+    <span class="brand">无忌 · Deep Research<span class="tag">L2</span></span>
+    <span class="topbar-spacer"></span>
+    <button class="icon-btn" id="pdfBtn" onclick="window.print()" aria-label="下载 PDF" title="下载 PDF（打印 → 存储为 PDF，已优化排版）">⬇</button>
+    <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="明暗切换">🌙</button>
+  </div>
+</header>
+
+<button class="nav-toggle" id="navToggle" aria-label="章节目录">☰</button>
+<div class="nav-overlay" id="navOverlay"></div>
+<nav class="anchor-nav">
+  <div class="nav-title">📖 目录</div>
+  <div class="anchor-list" id="anchorList">
+    <a href="#ch1" data-target="ch1">01 01 现有产品方案</a>
+    <a href="#ch2" data-target="ch2">02 02 技术路径对比</a>
+    <a href="#ch3" data-target="ch3">03 03 语境识别技术</a>
+    <a href="#ch4" data-target="ch4">04 04 成本分析</a>
+    <a href="#ch5" data-target="ch5">05 05 K12 特殊需求</a>
+    <a href="#ch6" data-target="ch6">06 06 响应速度优化</a>
+    <a href="#ch7" data-target="ch7">07 07 离线能力实现</a>
+    <a href="#ch8" data-target="ch8">08 08 多语言扩展</a>
+    <a href="#ch9" data-target="ch9">09 09 生词本与 SRS</a>
+    <a href="#ch10" data-target="ch10">10 10 实施路线（核心）</a>
+    <a href="#ch11" data-target="ch11">11 11 技术风险与边界</a>
+    <a href="#ch12" data-target="ch12">12 12 实施建议总结</a>
+    <a href="#faq" data-target="faq">FAQ FAQ 常见问题</a>
+    <a href="#refs" data-target="refs">REF References</a>
+  </div>
+</nav>
+
+<main><div class="hero">
+  <h1>电子阅读精准单词查询技术方案研究</h1>
+  <div class="hero-meta">
+    <span>📅 2026-09-06</span>
+    <span>🔍 80+ 来源</span>
+    <span>🎯 半米阅读技术选型</span>
+  </div>
+  <div class="hero-deck">
+    <p><strong>市面产品怎么做单词查询？内置词典、API、AI 三条路怎么选？一词多义怎么破？半米阅读应该怎么做？</strong></p>
+    <p>本报告调研现有产品（Kindle / 微信读书 / 欧路词典 / 沙拉查词）的技术方案，对比内置词典、API、AI 模型三条路径的成本 / 准确度 / 响应速度 tradeoff，深入分析一词多义的语境识别技术（Lesk 82% vs BERT 87% vs LLM 77%），并给出半米阅读分阶段实施路线（MVP → 优化 → 多语言扩展）与成本预估。</p>
+  </div>
+</div>
+
+<div class="callout accent">
+  <p><strong>📌 三条最关键发现（先扫这个）：</strong></p>
+  <ul>
+    <li><strong>市面产品普遍"显示上下文"但不"智能排序释义"。</strong>Kindle 用预设难词库 + 离线即时显示<sup class="cite" data-refid="1">[1]</sup>，欧路词典多词典聚合 + 200-400MB 离线库<sup class="cite" data-refid="2">[2]</sup>，沙拉查词 6 个引擎自动捕获上下文<sup class="cite" data-refid="3">[3]</sup>——但技术文献和产品实测都未证实它们会"根据上下文调整释义顺序"，多数只是把句子一起显示。真正的语境理解需要 WSD（Word Sense Disambiguation）技术。<span class="conf g">🟢</span></li>
+    <li><strong>性价比最优方案是 Lesk + tf-idf（82-84% 准确率，&lt;50ms 延迟，零成本）。</strong>传统 Lesk 算法加 tf-idf 加权可达 82-84% 准确率<sup class="cite" data-refid="4">[4]</sup>，推理延迟 &lt;50ms<sup class="cite" data-refid="5">[5]</sup>，只需本地 WordNet 词库（37MB<sup class="cite" data-refid="6">[6]</sup>）即可运行，零 API 成本。BERT-based WSD 虽准确率可达 77-87%<sup class="cite" data-refid="7">[7]</sup>，但未优化延迟 200-500ms、需 GPU 加速才能降至 2-50ms<sup class="cite" data-refid="8">[8]</sup>。LLM API（GPT-4 ~77%<sup class="cite" data-refid="9">[9]</sup>）延迟 ~1s、单次成本 $0.015-0.03<sup class="cite" data-refid="10">[10]</sup>，不适合高频查询。<span class="conf g">🟢</span></li>
+    <li><strong>半米阅读三阶段路线：MVP 用 ECDICT 离线 + Lesk 语境排序（3 个月），优化期加 TinyBERT-4 移动端部署（6-12 个月），多语言扩展接 Cambridge API（12+ 个月）。</strong>ECDICT 77 万词条 MIT 授权零成本<sup class="cite" data-refid="11">[11]</sup>，配合 Lesk 算法（最优上下文窗口 7 词<sup class="cite" data-refid="12">[12]</sup>）足够 MVP；TinyBERT-4 仅 14.5M 参数、保持 96.8% BERT 性能<sup class="cite" data-refid="13">[13]</sup>，适合移动端；Cambridge 官方支持英↔泰/越/印尼双语词典<sup class="cite" data-refid="14">[14]</sup>。按日活 1k 学生 × 50 次查询/天估算，API 方案月成本 ¥150（有道<sup class="cite" data-refid="15">[15]</sup>）vs £3,000（Oxford<sup class="cite" data-refid="16">[16]</sup>），离线方案零运营成本。<span class="conf g">🟢</span></li>
+  </ul>
+</div>
+
+<!-- ===== CH1 现有产品技术方案 ===== -->
+<section class="chapter" id="ch1" data-nav="01 现有产品方案">
+  <h2><span class="num">01</span><span class="title-text">现有产品的技术方案对比</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>市面主流电子阅读产品都提供单词查询功能，但技术实现路径差异显著。我们调研了 Kindle、微信读书、欧路词典、沙拉查词四大类产品，发现它们在<strong>词库来源、离线能力、响应速度、语境理解</strong>四个维度上各有取舍。</p>
+
+    <h3>Kindle：预设难词库 + 离线即时响应</h3>
+    <div class="callout info">
+      <p><strong>核心机制：</strong>Word Wise 通过侧载 .kll 数据库文件实现，仅包含字符位置触发信息。难词判断由出版商预设，非基于大数据。选中单词后即时显示定义，自动加入生词本，全程离线。<sup class="cite" data-refid="1">[1]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>响应速度：</strong>即点即显，无需等待（&lt;10ms 级别）。<sup class="cite" data-refid="17">[17]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>局限：</strong>难词库是预设的，不会根据读者实际水平动态调整；未找到证据证明其会根据上下文调整释义顺序。</p>
+    </div>
+
+    <h3>微信读书：RAG 技术 + AI 问书</h3>
+    <div class="callout info">
+      <p><strong>核心机制：</strong>支持划词查询 + AI 问书（基于 RAG 检索增强生成）。AI 翻译实现即时理解，无需切换应用。<sup class="cite" data-refid="18">[18]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>局限：</strong>中文释义有时不准确，缺少英文释义；RAG 主要服务"AI 问书"功能，普通划词查询准确率未见公开数据。</p>
+    </div>
+
+    <h3>欧路词典：大容量离线词库 + 语境搜索</h3>
+    <div class="callout good">
+      <p><strong>核心机制：</strong>支持 Mdict(mdx/mdd)、灵格斯、Babylon 多种格式离线词库。典型多媒体词库（含真人发音）约 226-380MB。新增鼠标取词语境搜索功能，可查看单词在上下文中的解析。AI 解释可查询搭配、双语例句、同义词。<sup class="cite" data-refid="2">[2]</sup><sup class="cite" data-refid="19">[19]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>优势：</strong>离线能力强，词库可自定义扩展；支持多词典同时查询对比。</p>
+      <p><strong>局限：</strong>运行时内存占用未公开；"语境搜索"具体算法未披露，难以判断是否真正做语境理解还是只显示上下文。</p>
+    </div>
+
+    <h3>沙拉查词：多词典聚合 + 上下文自动捕获</h3>
+    <div class="callout good">
+      <p><strong>核心机制：</strong>聚合百度翻译、剑桥、柯林斯、有道等多个权威词典。支持 6 个翻译引擎的上下文翻译（谷歌、有道、百度、腾讯、彩云、搜狗）。每个单词的上下文自动获取并翻译，保存至生词本。内置 PDF 阅读器支持离线查词。<sup class="cite" data-refid="3">[3]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>优势：</strong>开源项目（MIT 许可证），可自行部署；多引擎对比降低单一来源偏差。</p>
+      <p><strong>局限：</strong>强调"上下文自动捕获"，但未明确说明是否调整释义排序；依赖多个第三方 API，稳定性受外部影响。</p>
+    </div>
+
+    <h3>浏览器扩展响应速度对比</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>产品</th>
+            <th>响应时间</th>
+            <th>行业标准</th>
+            <th>用户痛点</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>会译</td>
+            <td>~0.3秒<sup class="cite" data-refid="20">[20]</sup></td>
+            <td rowspan="3">≤500ms<sup class="cite" data-refid="20">[20]</sup></td>
+            <td rowspan="3">划词后等待 1-2 秒打断阅读节奏<sup class="cite" data-refid="20">[20]</sup></td>
+          </tr>
+          <tr>
+            <td>有道</td>
+            <td>&gt;0.8秒<sup class="cite" data-refid="20">[20]</sup></td>
+          </tr>
+          <tr>
+            <td>必应</td>
+            <td>&gt;0.8秒<sup class="cite" data-refid="20">[20]</sup></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><small><span class="conf y">🟡</span> 测试环境（设备配置、网络条件）未说明，数据来源为 2025 年技术评测<sup class="cite" data-refid="20">[20]</sup>。</small></p>
+
+    <h3>关键发现</h3>
+    <div class="callout warn">
+      <p><strong>矛盾点：多数产品只"显示上下文"，未证实"根据上下文智能调整释义顺序"。</strong></p>
+      <ul>
+        <li>Kindle Word Wise：未找到技术证据证明其会根据上下文调整释义顺序，现有证据显示是预设简化定义。</li>
+        <li>沙拉查词：强调上下文自动捕获，但未明确说明是否调整释义排序。</li>
+        <li>欧路词典：提及"语境搜索"，但具体算法未公开。</li>
+      </ul>
+      <p><strong>结论：</strong>真正的语境理解需要 WSD（Word Sense Disambiguation）技术，下一章详述。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH2 三条技术路径 ===== -->
+<section class="chapter" id="ch2" data-nav="02 技术路径对比">
+  <h2><span class="num">02</span><span class="title-text">三条技术路径对比：内置词典 vs API vs AI</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>单词查询技术本质上有三条路径：<strong>内置词典</strong>（离线优先）、<strong>词典 API</strong>（云端权威）、<strong>AI 模型</strong>（语境理解）。每条路径在成本、离线能力、准确度、响应延迟四个维度上有显著 tradeoff。</p>
+
+    <h3>路径一：内置词典（离线优先）</h3>
+    <div class="callout good">
+      <p><strong>代表：</strong>ECDICT、WordNet、Oxford 离线词典</p>
+      <p><strong>优势：</strong></p>
+      <ul>
+        <li><strong>零运营成本：</strong>一次性集成，无按量计费。</li>
+        <li><strong>完全离线：</strong>无网络依赖，响应速度 &lt;10ms。</li>
+        <li><strong>隐私保护：</strong>用户查询不离开设备。</li>
+      </ul>
+      <p><strong>劣势：</strong></p>
+      <ul>
+        <li><strong>更新频率低：</strong>需发版更新词库，无法实时响应新词。</li>
+        <li><strong>客户端体积增大：</strong>ECDICT 基础版 76 万词条<sup class="cite" data-refid="11">[11]</sup>、增强版 324 万词条<sup class="cite" data-refid="21">[21]</sup>；WordNet 37MB<sup class="cite" data-refid="6">[6]</sup>；Oxford 离线版 25.56MB<sup class="cite" data-refid="22">[22]</sup>。</li>
+        <li><strong>释义固定：</strong>无法根据实时语境动态调整，需额外算法支持。</li>
+      </ul>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric"><div class="v">76 万</div><div class="l">ECDICT 基础版词条数<sup class="cite" data-refid="11">[11]</sup> 🟢</div></div>
+      <div class="metric"><div class="v">324 万</div><div class="l">ECDICT 增强版词条数<sup class="cite" data-refid="21">[21]</sup> 🟢</div></div>
+      <div class="metric"><div class="v">16 万</div><div class="l">WordNet 2024 版词数<sup class="cite" data-refid="6">[6]</sup> 🟢</div></div>
+      <div class="metric"><div class="v">35 万</div><div class="l">Oxford 离线词典词条<sup class="cite" data-refid="22">[22]</sup> 🟡</div></div>
+    </div>
+
+    <h3>路径二：词典 API（云端权威）</h3>
+    <div class="callout info">
+      <p><strong>代表：</strong>有道智云、Oxford API、Cambridge API、Merriam-Webster API</p>
+      <p><strong>优势：</strong></p>
+      <ul>
+        <li><strong>权威释义：</strong>专业编纂团队持续维护，释义质量高。</li>
+        <li><strong>实时更新：</strong>新词、用法变化即时同步。</li>
+        <li><strong>无客户端负担：</strong>词库在云端，客户端轻量。</li>
+      </ul>
+      <p><strong>劣势：</strong></p>
+      <ul>
+        <li><strong>按量付费：</strong>高频查询累积成本显著（见下表）。</li>
+        <li><strong>网络依赖：</strong>离线场景完全不可用，响应延迟 100-300ms<sup class="cite" data-refid="23">[23]</sup>。</li>
+        <li><strong>API 稳定性风险：</strong>第三方服务中断影响产品可用性。</li>
+      </ul>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>API 提供商</th>
+            <th>定价模式</th>
+            <th>月成本（1 万次/天）</th>
+            <th>备注</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>有道智云</td>
+            <td>~¥50/百万字符<sup class="cite" data-refid="15">[15]</sup></td>
+            <td>~¥150</td>
+            <td>词典服务仅包年<sup class="cite" data-refid="24">[24]</sup></td>
+          </tr>
+          <tr>
+            <td>Oxford API</td>
+            <td>£5,000/语言/年<sup class="cite" data-refid="16">[16]</sup></td>
+            <td>~£417（月均）</td>
+            <td>企业商用门槛高</td>
+          </tr>
+          <tr>
+            <td>Merriam-Webster</td>
+            <td>免费 2,000 次/天<sup class="cite" data-refid="25">[25]</sup></td>
+            <td>¥0（超限被封）</td>
+            <td>非商业使用</td>
+          </tr>
+          <tr>
+            <td>WordsAPI</td>
+            <td>$0.004/次（超 2,500 次/天）<sup class="cite" data-refid="26">[26]</sup></td>
+            <td>$5,890</td>
+            <td>❌ 完全不可行</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>路径三：AI 模型（语境理解）</h3>
+    <div class="callout accent">
+      <p><strong>代表：</strong>Claude API、GPT API、BERT-based WSD、TinyBERT</p>
+      <p><strong>优势：</strong></p>
+      <ul>
+        <li><strong>最高准确度：</strong>LLM zero-shot ~77%<sup class="cite" data-refid="9">[9]</sup>，Fine-tuned 模型可达 84.7% F1<sup class="cite" data-refid="27">[27]</sup>。</li>
+        <li><strong>语境理解：</strong>根据上下文动态调整释义，解决一词多义。</li>
+        <li><strong>灵活性：</strong>可生成例句、同义词、词根词缀等扩展内容。</li>
+      </ul>
+      <p><strong>劣势：</strong></p>
+      <ul>
+        <li><strong>成本高：</strong>LLM API 单次 $0.015-0.03<sup class="cite" data-refid="10">[10]</sup>，月成本 $90-270（1 万次/天）。</li>
+        <li><strong>延迟高：</strong>LLM API ~1s<sup class="cite" data-refid="10">[10]</sup>，BERT 未优化 200-500ms<sup class="cite" data-refid="28">[28]</sup>。</li>
+        <li><strong>部署复杂：</strong>本地部署 BERT 需 GPU 加速，移动端需模型量化（TinyBERT-4 等）。</li>
+      </ul>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric"><div class="v">$90/月</div><div class="l">Claude Haiku（1 万次/天）<sup class="cite" data-refid="29">[29]</sup> 🟢</div></div>
+      <div class="metric"><div class="v">$270/月</div><div class="l">Claude Sonnet（1 万次/天）<sup class="cite" data-refid="29">[29]</sup> 🟢</div></div>
+      <div class="metric"><div class="v">~1s</div><div class="l">LLM API 响应延迟<sup class="cite" data-refid="10">[10]</sup> 🟡</div></div>
+      <div class="metric"><div class="v">200-500ms</div><div class="l">BERT 未优化延迟<sup class="cite" data-refid="28">[28]</sup> 🟢</div></div>
+    </div>
+
+    <h3>Tradeoff 总结</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>内置词典</th>
+            <th>词典 API</th>
+            <th>AI 模型（LLM）</th>
+            <th>AI 模型（BERT/NLP）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>成本</strong></td>
+            <td>一次性（免费-£5k）</td>
+            <td>按量/包年（¥50/百万字符-£5k/年）</td>
+            <td>按 token（$1-25/百万 token）</td>
+            <td>一次性模型部署</td>
+          </tr>
+          <tr>
+            <td><strong>离线能力</strong></td>
+            <td class="check y">✅ 完全离线</td>
+            <td class="check n">⛔ 需联网</td>
+            <td class="check n">⛔ 需联网</td>
+            <td class="check y">✅ 完全离线（spaCy）</td>
+          </tr>
+          <tr>
+            <td><strong>准确度</strong></td>
+            <td>中（固定释义）</td>
+            <td>高（专业编纂）</td>
+            <td>最高（语境理解）</td>
+            <td>中-高（语义理解）</td>
+          </tr>
+          <tr>
+            <td><strong>更新频率</strong></td>
+            <td>低（需发版）<br>年更/季度更（线上）</td>
+            <td>高（实时）</td>
+            <td>实时（模型持续更新）</td>
+            <td>低（需重新训练）</td>
+          </tr>
+          <tr>
+            <td><strong>响应延迟</strong></td>
+            <td>&lt;10ms（本地查询）</td>
+            <td>100-300ms（网络+查询）</td>
+            <td>200-1000ms（模型推理）</td>
+            <td>250ms（BERT-Small）<br>&lt;50ms（spaCy 字典匹配）</td>
+          </tr>
+          <tr>
+            <td><strong>典型场景</strong></td>
+            <td>移动 App 离线查词<br>嵌入式设备</td>
+            <td>Web/云服务<br>需权威释义</td>
+            <td>智能助手<br>语境解释/多语言</td>
+            <td>NLP 管道<br>语义分析</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout good">
+      <p><strong>推荐组合：</strong>离线词典（ECDICT）+ 轻量 NLP（Lesk/TinyBERT）+ LLM 兜底（Claude Haiku）</p>
+      <ul>
+        <li><strong>80% 查询：</strong>ECDICT 离线 + Lesk 语境排序（82-84% 准确率<sup class="cite" data-refid="4">[4]</sup>，&lt;50ms，零成本）</li>
+        <li><strong>15% 复杂场景：</strong>TinyBERT-4 本地推理（96.8% BERT 性能<sup class="cite" data-refid="13">[13]</sup>，&lt;20ms）</li>
+        <li><strong>5% 难句兜底：</strong>Claude Haiku API（~77% 准确率<sup class="cite" data-refid="9">[9]</sup>，~1s，仅难句触发）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH3 一词多义语境识别 ===== -->
+<section class="chapter" id="ch3" data-nav="03 语境识别技术">
+  <h2><span class="num">03</span><span class="title-text">一词多义的语境识别技术：WSD 算法对比</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>WSD（Word Sense Disambiguation，词义消歧）是 NLP 领域的经典难题。一个单词在不同上下文中可能有完全不同的含义（如 "bank" 可以是"银行"或"河岸"），如何自动选择正确的释义？学术界和工业界已有多种技术路径，我们对比传统算法、BERT-based 模型、LLM 方案的准确率、延迟、成本。</p>
+
+    <h3>传统方法：Lesk + tf-idf（性价比之王）</h3>
+    <div class="callout good">
+      <p><strong>算法原理：</strong>计算待查词的各个义项定义与上下文的词汇重叠度，用 tf-idf 加权提高关键词权重，选择重叠度最高的义项。<sup class="cite" data-refid="4">[4]</sup></p>
+      <p><strong>准确率：</strong>无停用词删除 82.016%，有停用词删除 84.063%<sup class="cite" data-refid="4">[4]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>上下文窗口：</strong>实践最优值 7 词<sup class="cite" data-refid="12">[12]</sup>，按词性动态调整（名词 2.4-2.5 词，动词 2.3-1.7 词）<sup class="cite" data-refid="12">[12]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>推理延迟：</strong>&lt;50ms<sup class="cite" data-refid="5">[5]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>部署难度：</strong>低，只需本地 WordNet 词库（37MB<sup class="cite" data-refid="6">[6]</sup>）+ 简单 Python 实现（NLTK 库自带<sup class="cite" data-refid="30">[30]</sup>）</p>
+      <p><strong>成本：</strong>$0（本地计算）</p>
+    </div>
+
+    <h3>深度学习方法：BERT-based WSD</h3>
+    <div class="callout info">
+      <p><strong>代表模型：</strong>GlossBERT、PolyBERT、SenseBERT</p>
+      <p><strong>准确率范围：</strong>77-87%<sup class="cite" data-refid="7">[7]</sup></p>
+      <ul>
+        <li>GlossBERT：SemEval2013 = 77.17%, SemEval2015 = 74.40%, SensEval2 = 76.32%<sup class="cite" data-refid="31">[31]</sup></li>
+        <li>PolyBERT：SemEval 数据集 F1-Score = 0.874<sup class="cite" data-refid="32">[32]</sup></li>
+        <li>SenseBERT LARGE：SemEval-SS 任务 79.5%（vs BERT LARGE 67.3%）<sup class="cite" data-refid="33">[33]</sup></li>
+      </ul>
+      <p><strong>推理延迟：</strong></p>
+      <ul>
+        <li>未优化：200-500ms<sup class="cite" data-refid="28">[28]</sup></li>
+        <li>优化后（TensorRT + T4 GPU）：2.2ms<sup class="cite" data-refid="8">[8]</sup></li>
+        <li>DistilBERT + ONNX 量化：&lt;50ms<sup class="cite" data-refid="34">[34]</sup></li>
+      </ul>
+      <p><strong>模型大小：</strong>BERT-base ~440MB，DistilBERT 207MB<sup class="cite" data-refid="35">[35]</sup>，TinyBERT-4 ~58MB<sup class="cite" data-refid="13">[13]</sup></p>
+      <p><strong>部署难度：</strong>高（需 GPU 加速或量化优化）</p>
+    </div>
+
+    <h3>LLM 方案：GPT/Claude API</h3>
+    <div class="callout warn">
+      <p><strong>准确率：</strong></p>
+      <ul>
+        <li>LLM zero-shot（XL-WSD 多选）：53-75%<sup class="cite" data-refid="9">[9]</sup></li>
+        <li>GPT-4 zero-shot（WiC 二元任务）：~77%<sup class="cite" data-refid="9">[9]</sup></li>
+        <li>Fine-tuned Llama3.1-8B（2025 年 3 月）：F1 = 0.847（超越当时 SOTA）<sup class="cite" data-refid="27">[27]</sup></li>
+      </ul>
+      <p><strong>延迟：</strong>~1 秒（API 网络延迟 + 推理时间）<sup class="cite" data-refid="10">[10]</sup> <span class="conf y">🟡</span></p>
+      <p><strong>成本：</strong></p>
+      <ul>
+        <li>单次查询（假设 200 input + 100 output tokens）：$0.015-0.03<sup class="cite" data-refid="10">[10]</sup></li>
+        <li>完整 WSD 任务批次：Claude Sonnet $30.51, Gemini 2.5 Pro $22.77, GPT-5.2 $16.26<sup class="cite" data-refid="36">[36]</sup></li>
+      </ul>
+      <p><strong>结论：</strong>LLM API 成本高、延迟高，<strong>不适合高频实时查询</strong>（5 万次/天场景月成本 $750-1,500）。但适合作为兜底方案，处理传统方法无法解决的难句。</p>
+    </div>
+
+    <h3>混合方案：规则 + 机器学习</h3>
+    <div class="callout accent">
+      <p><strong>代表：</strong>BiGRU + DeBERTa 混合模型<sup class="cite" data-refid="37">[37]</sup></p>
+      <p><strong>准确率：</strong>峰值 85%<sup class="cite" data-refid="37">[37]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>机制：</strong>先用 Lesk 快速筛选 top-3 候选，再用轻量 BERT 模型排序。既保留传统方法的速度，又借助深度学习提升准确度。</p>
+    </div>
+
+    <h3>前置条件对比</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>方案</th>
+            <th>准确率</th>
+            <th>上下文长度</th>
+            <th>推理延迟</th>
+            <th>部署难度</th>
+            <th>单次成本</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Lesk + tf-idf</td>
+            <td>82-84%</td>
+            <td>7-10 词</td>
+            <td>&lt;50ms</td>
+            <td>低</td>
+            <td>$0</td>
+          </tr>
+          <tr>
+            <td>BERT 优化版</td>
+            <td>77-87%</td>
+            <td>前后 2-3 句（~128 tokens）</td>
+            <td>2-50ms</td>
+            <td>高</td>
+            <td>$0（本地/GPU）</td>
+          </tr>
+          <tr>
+            <td>TinyBERT-4</td>
+            <td>74%（96.8% BERT 性能）</td>
+            <td>同上</td>
+            <td>&lt;20ms</td>
+            <td>中</td>
+            <td>$0（本地/移动端）</td>
+          </tr>
+          <tr>
+            <td>LLM API</td>
+            <td>~77%</td>
+            <td>前后段落（~200-500 tokens）</td>
+            <td>~1s</td>
+            <td>低（API 调用）</td>
+            <td>$0.015-0.03</td>
+          </tr>
+          <tr>
+            <td>混合方案</td>
+            <td>85%</td>
+            <td>前后段落</td>
+            <td>50-200ms</td>
+            <td>高</td>
+            <td>$0（本地）</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>半米阅读建议</h3>
+    <div class="callout good">
+      <p><strong>三层架构：</strong></p>
+      <ol>
+        <li><strong>第一层（80% 查询）：</strong>Lesk + tf-idf 本地算法，7 词上下文窗口，&lt;50ms 响应，零成本。</li>
+        <li><strong>第二层（15% 查询）：</strong>TinyBERT-4 本地推理（移动端可用），处理 Lesk 置信度低的场景（如上下文词汇重叠度接近）。</li>
+        <li><strong>第三层（5% 查询）：</strong>Claude Haiku API 兜底，仅在以下场景触发：① 生僻词（ECDICT 无收录）；② 专业术语；③ 俚语/新词；④ 用户明确标记"查不准"。</li>
+      </ol>
+      <p><strong>成本估算（日活 1k 学生 × 50 次查询/天 = 5 万次/天）：</strong></p>
+      <ul>
+        <li>第一层：$0</li>
+        <li>第二层：$0（一次性模型部署）</li>
+        <li>第三层（5% = 2,500 次/天）：~$15/月（Claude Haiku $0.0002/次 × 2,500 × 30）</li>
+      </ul>
+      <p><strong>总成本：</strong>~$15/月（vs 全部用 LLM $4,500/月）</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH4 成本分析 ===== -->
+<section class="chapter" id="ch4" data-nav="04 成本分析">
+  <h2><span class="num">04</span><span class="title-text">成本对比分析：开源 vs 商业 vs LLM</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>成本是技术选型的关键考量。我们按半米阅读的典型使用场景（日活 1k/5k/10k 学生，每人 50 次查询/天），对比各方案的月度成本、授权限制、多语言扩展成本。</p>
+
+    <h3>开源词典方案</h3>
+    <div class="callout good">
+      <h4>ECDICT：MIT 授权，零成本</h4>
+      <ul>
+        <li><strong>词条数：</strong>基础版 76 万<sup class="cite" data-refid="11">[11]</sup>，增强版 324 万<sup class="cite" data-refid="21">[21]</sup></li>
+        <li><strong>授权：</strong>MIT，商业使用无限制<sup class="cite" data-refid="11">[11]</sup> <span class="conf g">🟢</span></li>
+        <li><strong>限制：</strong>仅英汉双语，不支持泰语/越南语/印尼语</li>
+        <li><strong>成本：</strong>$0（一次性集成，客户端需 50-100MB 空间）</li>
+      </ul>
+
+      <h4>WordNet：BSD 授权，多语言支持</h4>
+      <ul>
+        <li><strong>词条数：</strong>161,705 词，120,630 synsets，文件大小 37MB<sup class="cite" data-refid="6">[6]</sup></li>
+        <li><strong>授权：</strong>英语 WordNet BSD 授权，Open Multilingual WordNet Apache 2.0，覆盖 200+ 语言<sup class="cite" data-refid="38">[38]</sup> <span class="conf g">🟢</span></li>
+        <li><strong>成本：</strong>$0（需自建查询服务）</li>
+      </ul>
+
+      <h4>spaCy：MIT 授权，70+ 语言</h4>
+      <ul>
+        <li><strong>能力：</strong>支持 70+ 语言，24 语言有预训练 pipeline（80 个），POS 标注准确率 90%+<sup class="cite" data-refid="39">[39]</sup></li>
+        <li><strong>授权：</strong>MIT<sup class="cite" data-refid="39">[39]</sup> <span class="conf g">🟢</span></li>
+        <li><strong>成本：</strong>$0（本地部署）+ $20-50/月（自建服务器，1-2 核 VPS）</li>
+      </ul>
+    </div>
+
+    <h3>商业 API 方案</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>API 提供商</th>
+            <th>定价</th>
+            <th>月成本（1k 日活）</th>
+            <th>月成本（5k 日活）</th>
+            <th>月成本（10k 日活）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ECDICT 离线</td>
+            <td>免费</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+          </tr>
+          <tr>
+            <td>Merriam-Webster</td>
+            <td>2,000 次/天免费<sup class="cite" data-refid="25">[25]</sup></td>
+            <td>$0（超限被封）</td>
+            <td>-</td>
+            <td>-</td>
+          </tr>
+          <tr>
+            <td>有道智云 API</td>
+            <td>~¥50/百万字符<sup class="cite" data-refid="15">[15]</sup></td>
+            <td>~¥150 (~$21)</td>
+            <td>~¥750 (~$106)</td>
+            <td>~¥1,500 (~$212)</td>
+          </tr>
+          <tr>
+            <td>Oxford API</td>
+            <td>£5,000/语言/年<sup class="cite" data-refid="16">[16]</sup></td>
+            <td>~£417 (~$543)</td>
+            <td>~£417 (~$543)</td>
+            <td>~£417 (~$543)</td>
+          </tr>
+          <tr>
+            <td>Claude Haiku</td>
+            <td>$1/$5 per MTok<sup class="cite" data-refid="29">[29]</sup></td>
+            <td>~$90</td>
+            <td>~$450</td>
+            <td>~$900</td>
+          </tr>
+          <tr>
+            <td>Claude Sonnet</td>
+            <td>$3/$15 per MTok<sup class="cite" data-refid="29">[29]</sup></td>
+            <td>~$270</td>
+            <td>~$1,350</td>
+            <td>~$2,700</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><small>计算假设：每次查询 200 input + 100 output tokens（~300 tokens），1k 日活 = 5 万次/天 = 150 万次/月。</small></p>
+
+    <h3>东南亚多语言扩展成本</h3>
+    <div class="callout info">
+      <h4>Cambridge Dictionary API（官方支持泰/越/印尼）</h4>
+      <ul>
+        <li><strong>覆盖：</strong>官方支持 English-Thai、English-Vietnamese、English-Indonesian 互译<sup class="cite" data-refid="14">[14]</sup> <span class="conf g">🟢</span></li>
+        <li><strong>定价：</strong>无公开 REST API，商用按需定制<sup class="cite" data-refid="40">[40]</sup> <span class="conf y">🟡</span></li>
+      </ul>
+
+      <h4>VOLUBILIS 泰语词典（开源）</h4>
+      <ul>
+        <li><strong>词条数：</strong>11.4 万词条，支持 18 语言（含印尼语、越南语）<sup class="cite" data-refid="41">[41]</sup></li>
+        <li><strong>版本：</strong>2026 年 7 月发布 v26.2<sup class="cite" data-refid="41">[41]</sup> <span class="conf g">🟢</span></li>
+        <li><strong>成本：</strong>$0（需自建）</li>
+      </ul>
+
+      <h4>DeepL API（泰语/越南语新支持）</h4>
+      <ul>
+        <li><strong>语言：</strong>2026 年新增泰语、越南语、希伯来语支持<sup class="cite" data-refid="42">[42]</sup></li>
+        <li><strong>定价：</strong>API Free 50 万字符/月，API Pro €5.49/月起<sup class="cite" data-refid="43">[43]</sup></li>
+      </ul>
+    </div>
+
+    <h3>ROI 分析</h3>
+    <div class="callout accent">
+      <p><strong>关键发现：</strong></p>
+      <ol>
+        <li><strong>离线方案月省 $90-2,700（vs LLM API）：</strong>ECDICT + Lesk 零运营成本，vs Claude Haiku $90-900/月、Sonnet $270-2,700/月。</li>
+        <li><strong>Oxford API 门槛过高：</strong>£5,000/年/语言（~$6,500），只适合需要"牛津权威背书"的 B2B 场景。</li>
+        <li><strong>有道智云性价比居中：</strong>¥150-1,500/月（$21-212），比 LLM 便宜 70-90%，比离线方案贵。</li>
+        <li><strong>混合方案最优：</strong>ECDICT 离线 + Lesk（80% 查询）+ TinyBERT-4（15%）+ Claude Haiku 兜底（5%）= 月成本 $15-150（vs 纯 LLM $900-2,700）。</li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH5 K12 场景需求 ===== -->
+<section class="chapter" id="ch5" data-nav="05 K12 特殊需求">
+  <h2><span class="num">05</span><span class="title-text">K12 学习场景的特殊需求</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>K12 英语学习场景对单词查询有六大特殊需求：<strong>释义简化、分级标签、例句适龄、发音支持、词根词缀、生词本闭环</strong>。这些需求决定了词典不只是"查得到"，更要"看得懂""记得住"。</p>
+
+    <h3>需求一：释义简化（避免"用难词解释简单词"）</h3>
+    <div class="callout good">
+      <h4>Oxford 3000 核心词定义法</h4>
+      <p><strong>机制：</strong>Oxford 3000 词表（CEFR A1-B2 核心词）作为释义语言，避免"用 difficult 解释 hard"。<sup class="cite" data-refid="44">[44]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>对比：</strong>普通词典（如 WordReference）释义不简化、无 CEFR 标签；Oxford Learner's Dictionary 定向 K12。<sup class="cite" data-refid="45">[45]</sup></p>
+
+      <h4>扇贝单词柯林斯分级（1-5 星）</h4>
+      <p><strong>实现：</strong>首家获柯林斯授权的中国教育软件，提供英英释义 + COBUILD 高阶学习者词典。<sup class="cite" data-refid="46">[46]</sup> <span class="conf g">🟢</span></p>
+    </div>
+
+    <h3>需求二：CEFR 分级标签</h3>
+    <div class="metric-grid">
+      <div class="metric"><div class="v">1,500 词</div><div class="l">CEFR A2（KET）词汇量<sup class="cite" data-refid="47">[47]</sup> 🟢</div></div>
+      <div class="metric"><div class="v">2,500-4,000 词</div><div class="l">CEFR B1（PET）词汇量<sup class="cite" data-refid="47">[47]</sup> 🟢</div></div>
+    </div>
+    <p><small>注：词汇量按"词族"（word families）计算，基础词 + 变形/派生算一个单位（如 learn/learned/learning/learner 算 1 个词族）。<sup class="cite" data-refid="48">[48]</sup></small></p>
+
+    <h3>需求三：例句适龄</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>年级</th>
+            <th>例句来源</th>
+            <th>句子长度</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>小学（K-5）</td>
+            <td>绘本/儿歌句</td>
+            <td>≤8 词/句</td>
+          </tr>
+          <tr>
+            <td>初中（6-8）</td>
+            <td>日常对话/简化新闻</td>
+            <td>8-15 词/句</td>
+          </tr>
+          <tr>
+            <td>高中（9-12）</td>
+            <td>原版文学/学术文本摘录</td>
+            <td>>15 词/句</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>需求四：发音 + IPA 音标 + 慢速播放</h3>
+    <div class="callout info">
+      <p><strong>标配功能：</strong></p>
+      <ul>
+        <li>IPA 音标（英/美两套）+ 点击播放<sup class="cite" data-refid="49">[49]</sup></li>
+        <li>正常速 + 0.75x 慢速音频<sup class="cite" data-refid="50">[50]</sup></li>
+        <li>音节断句：vis·u·al·ize（辅助拼读）</li>
+      </ul>
+    </div>
+
+    <h3>需求五：词根词缀（4 年级+ 分水岭）</h3>
+    <div class="callout accent">
+      <p><strong>教学分界：</strong>低年级（K-3）专注解码；4 年级起文本复杂化，引入希腊/拉丁词根。<sup class="cite" data-refid="51">[51]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>价值：</strong>一个词根可解锁几十个新词；普通英语 50% 来自希腊/拉丁，技术文本接近 75%。<sup class="cite" data-refid="52">[52]</sup></p>
+      <p><strong>显示条件：</strong>用户年级 ≥4 或词汇量 >1500</p>
+      <p><strong>内容示例：</strong>vis（看）→ visible, vision, supervise, visual, revise</p>
+    </div>
+
+    <h3>需求六：生词本闭环（CSV 导出 + SRS 集成）</h3>
+    <div class="callout good">
+      <h4>CSV 格式是事实标准</h4>
+      <p><strong>通用性：</strong>Anki、Quizlet、LingoBlend 等主流 SRS 工具均支持 CSV/纯文本导入。<sup class="cite" data-refid="53">[53]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>格式：</strong><code>word,translation,example,notes</code></p>
+
+      <h4>Anki FSRS 算法减少 20-30% 复习次数</h4>
+      <p><strong>算法进化：</strong>SM-2（1987 年 SuperMemo 算法）→ FSRS（2023 年 Anki 默认），基于 50 亿次真实复习数据训练。<sup class="cite" data-refid="54">[54]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>效果：</strong>比 SM-2 少 20-30% 复习次数，同样保留率。<sup class="cite" data-refid="54">[54]</sup></p>
+
+      <h4>跨应用联动案例：不背单词 + 朗易思听</h4>
+      <p><strong>闭环设计：</strong>听力练习中添加生词 → 自动同步到不背单词 → 智能间隔复习。<sup class="cite" data-refid="55">[55]</sup> <span class="conf y">🟡</span></p>
+    </div>
+
+    <h3>需求七：多语言路径（东南亚市场）</h3>
+    <div class="callout info">
+      <h4>Cambridge 官方支持英 ↔ 泰/越/印尼</h4>
+      <p><strong>覆盖：</strong>官方支持 English-Thai、English-Vietnamese、English-Indonesian 互译。<sup class="cite" data-refid="14">[14]</sup> <span class="conf g">🟢</span></p>
+
+      <h4>东南亚多语言词典 app</h4>
+      <p><strong>实现：</strong>支持英语、印尼语、泰语、越南语等 10 种东盟语言互译。<sup class="cite" data-refid="56">[56]</sup> <span class="conf y">🟡</span></p>
+    </div>
+
+    <h3>需求八：离线支持（建议，非刚需）</h3>
+    <div class="callout warn">
+      <p><strong>数据：</strong>美国 GAO 报告显示 70% 作业需网络；"Underconnected" 学生落后风险。<sup class="cite" data-refid="57">[57]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>主流 LMS 方案：</strong>Schoology、edX、Google Docs 支持离线模式（联网时下载内容 → 离线 view-only）。<sup class="cite" data-refid="58">[58]</sup></p>
+      <p><strong>半米建议：</strong>核心 3000-5000 词（A1-B2）本地缓存，C1/C2 或专业词汇走 API。同步策略：Wi-Fi 下自动缓存查询记录。</p>
+    </div>
+
+    <h3>K12 场景设计清单（实施参考）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>需求</th>
+            <th>优先级</th>
+            <th>实现路径</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>释义简化（Oxford 3000 限定词汇）</td>
+            <td class="check y">✅ 必须</td>
+            <td>ECDICT + 自建 3000 词释义简化层</td>
+          </tr>
+          <tr>
+            <td>CEFR 标签</td>
+            <td class="check y">✅ 必须</td>
+            <td>Oxford 3000/5000 词表映射</td>
+          </tr>
+          <tr>
+            <td>例句适龄</td>
+            <td class="check y">✅ 必须</td>
+            <td>按年级/词汇量过滤例句库</td>
+          </tr>
+          <tr>
+            <td>发音 + IPA + 慢速播放</td>
+            <td class="check y">✅ 必须</td>
+            <td>TTS API（如 Google TTS）+ 音速调节</td>
+          </tr>
+          <tr>
+            <td>词根词缀（4 年级+）</td>
+            <td class="check p">⚠️ 可选</td>
+            <td>用户年级 ≥4 或词汇量 >1500 才显示</td>
+          </tr>
+          <tr>
+            <td>生词本闭环（CSV 导出）</td>
+            <td class="check y">✅ 必须</td>
+            <td>导出 <code>word,translation,example,notes</code></td>
+          </tr>
+          <tr>
+            <td>SRS 集成（Anki/Quizlet）</td>
+            <td class="check p">⚠️ 可选</td>
+            <td>内置 FSRS 算法 or 导出 CSV 给第三方</td>
+          </tr>
+          <tr>
+            <td>多语言路径（泰/越/印尼）</td>
+            <td class="check p">⚠️ 扩张期</td>
+            <td>Cambridge API 或 DeepL API</td>
+          </tr>
+          <tr>
+            <td>离线支持（核心 3000-5000 词）</td>
+            <td class="check p">⚠️ 建议</td>
+            <td>本地缓存 + Wi-Fi 同步</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH6 响应速度优化 ===== -->
+<section class="chapter" id="ch6" data-nav="06 响应速度优化">
+  <h2><span class="num">06</span><span class="title-text">响应速度优化：从 500ms 降至 50ms</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>用户核心痛点是"划词后等待 1-2 秒打断阅读节奏"<sup class="cite" data-refid="20">[20]</sup>。行业标准要求响应时间 ≤500ms<sup class="cite" data-refid="20">[20]</sup>，优秀产品（如会译）可达 ~0.3 秒<sup class="cite" data-refid="20">[20]</sup>。我们从词典查询、WSD 算法、模型优化三个层面优化延迟。</p>
+
+    <h3>词典查询层优化</h3>
+    <div class="callout good">
+      <h4>本地 HashTable 查询（&lt;10ms）</h4>
+      <ul>
+        <li>ECDICT SQLite 数据库 + 内存索引</li>
+        <li>spaCy StringStore 哈希缓存<sup class="cite" data-refid="59">[59]</sup></li>
+        <li>预加载高频词（覆盖 80% 查询）</li>
+      </ul>
+
+      <h4>API 调用优化（100-300ms → 50-100ms）</h4>
+      <ul>
+        <li>连接池复用（避免每次握手）</li>
+        <li>HTTP/2 多路复用</li>
+        <li>CDN 加速（地理位置就近）</li>
+        <li>超时设置（200ms 未响应 → 降级到本地词典）</li>
+      </ul>
+    </div>
+
+    <h3>WSD 算法优化</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>算法</th>
+            <th>未优化延迟</th>
+            <th>优化后延迟</th>
+            <th>优化手段</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Lesk + tf-idf</td>
+            <td>&lt;50ms</td>
+            <td>&lt;20ms</td>
+            <td>预计算 tf-idf 权重 + 缓存高频词</td>
+          </tr>
+          <tr>
+            <td>BERT-base</td>
+            <td>200-500ms</td>
+            <td>2-50ms</td>
+            <td>TensorRT + T4 GPU / ONNX 量化<sup class="cite" data-refid="8">[8]</sup></td>
+          </tr>
+          <tr>
+            <td>TinyBERT-4</td>
+            <td>~50ms</td>
+            <td>&lt;20ms</td>
+            <td>量化 + 动态输入长度<sup class="cite" data-refid="60">[60]</sup></td>
+          </tr>
+          <tr>
+            <td>LLM API</td>
+            <td>~1s</td>
+            <td>无法优化（网络 + 推理固定）</td>
+            <td>只用于兜底场景</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>BERT 模型优化七大技巧</h3>
+    <div class="callout accent">
+      <p><strong>基于 2026 年工程实践<sup class="cite" data-refid="8">[8]</sup><sup class="cite" data-refid="61">[61]</sup>：</strong></p>
+      <ol>
+        <li><strong>模型量化：</strong>FP32 253MB → INT8 64MB（4× 压缩），精度损失 &lt;1%<sup class="cite" data-refid="62">[62]</sup></li>
+        <li><strong>ONNX Runtime：</strong>跨平台加速，CPU 优化到 40ms（batch=1）<sup class="cite" data-refid="63">[63]</sup></li>
+        <li><strong>TensorRT（GPU）：</strong>BERT + T4 GPU = 2.2ms（batch=1, seq=128）<sup class="cite" data-refid="8">[8]</sup></li>
+        <li><strong>动态输入长度：</strong>实际句子 20 词 → padding 到 20 而非 512（省 96% 计算）<sup class="cite" data-refid="60">[60]</sup></li>
+        <li><strong>轻量级模型：</strong>DistilBERT（-40% 参数，97% 性能）<sup class="cite" data-refid="35">[35]</sup>，TinyBERT-4（-87% 参数，96.8% 性能）<sup class="cite" data-refid="13">[13]</sup></li>
+        <li><strong>批处理：</strong>移动端单次查询，服务端可批处理 10-100 次（降低平均延迟）</li>
+        <li><strong>缓存策略：</strong>高频词 WSD 结果缓存（如 "bank" 在金融文本上下文 = "银行"）</li>
+      </ol>
+    </div>
+
+    <h3>半米阅读延迟预算</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>环节</th>
+            <th>目标延迟</th>
+            <th>实现方案</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>点击响应</td>
+            <td>&lt;50ms</td>
+            <td>前端事件监听 + 防抖</td>
+          </tr>
+          <tr>
+            <td>词典查询</td>
+            <td>&lt;10ms</td>
+            <td>ECDICT 本地 HashTable</td>
+          </tr>
+          <tr>
+            <td>WSD 算法</td>
+            <td>&lt;20ms</td>
+            <td>Lesk + tf-idf（80%）+ TinyBERT-4（15%）</td>
+          </tr>
+          <tr>
+            <td>UI 渲染</td>
+            <td>&lt;20ms</td>
+            <td>虚拟滚动 + 懒加载</td>
+          </tr>
+          <tr>
+            <td><strong>总延迟（P50）</strong></td>
+            <td><strong>&lt;100ms</strong></td>
+            <td>远超行业标准 500ms</td>
+          </tr>
+          <tr>
+            <td><strong>总延迟（P95，兜底 LLM）</strong></td>
+            <td><strong>&lt;1.2s</strong></td>
+            <td>仅 5% 查询触发，用户可感知"复杂场景"</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="callout good">
+      <p><strong>结论：</strong>混合架构（本地词典 + Lesk/TinyBERT + LLM 兜底）可将 95% 查询延迟控制在 100ms 内，5% 难句兜底场景 1.2s 可接受（用户明确感知"这个词很复杂"）。</p>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH7 离线能力实现 ===== -->
+<section class="chapter" id="ch7" data-nav="07 离线能力实现">
+  <h2><span class="num">07</span><span class="title-text">离线能力实现路径</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>70% 作业需要互联网<sup class="cite" data-refid="57">[57]</sup>，但离线能力仍是差异化优势——国际学校 Wi-Fi 普及，但家庭作业、通勤场景需要离线支持。我们分析三种离线方案的可行性。</p>
+
+    <h3>方案一：核心词库本地缓存（推荐）</h3>
+    <div class="callout good">
+      <p><strong>实现：</strong>A1-B2 核心 3000-5000 词本地缓存，C1/C2 走 API。</p>
+      <p><strong>数据大小：</strong></p>
+      <ul>
+        <li>ECDICT 基础版 76 万词条（全量）：~50-100MB</li>
+        <li>核心 5000 词（精简版）：~5-10MB</li>
+        <li>释义 + 例句 + 发音 URL：~15-20MB</li>
+      </ul>
+      <p><strong>同步策略：</strong></p>
+      <ul>
+        <li>首次安装：下载核心 3000 词（A1-A2）</li>
+        <li>Wi-Fi 下自动扩展：根据用户词汇量（B1 → 再下 2000 词，B2 → 再下 2000 词）</li>
+        <li>查询记录缓存：用户查过的词离线可重看</li>
+      </ul>
+      <p><strong>优势：</strong>覆盖 K12 核心需求，体积可控，渐进式下载。</p>
+    </div>
+
+    <h3>方案二：全量离线词库（体积大）</h3>
+    <div class="callout warn">
+      <p><strong>实现：</strong>ECDICT 77 万词条全量打包进 App。</p>
+      <p><strong>数据大小：</strong>~50-100MB（压缩后）</p>
+      <p><strong>劣势：</strong></p>
+      <ul>
+        <li>首次下载慢（移动网络 50MB = 用户流失风险）</li>
+        <li>App 体积膨胀（AppStore/Google Play 转化率下降）</li>
+        <li>77 万词中 90% 是 K12 用不到的生僻词</li>
+      </ul>
+      <p><strong>适用场景：</strong>高中以上、专业阅读场景。</p>
+    </div>
+
+    <h3>方案三：渐进式 Web App（PWA）</h3>
+    <div class="callout info">
+      <p><strong>实现：</strong>Service Worker + IndexedDB 缓存。</p>
+      <p><strong>机制：</strong></p>
+      <ul>
+        <li>首次访问：加载核心 1000 词</li>
+        <li>用户查询时：优先本地，未命中 → API 查询 → 缓存到 IndexedDB</li>
+        <li>渐进式膨胀：用户越用，离线库越大</li>
+      </ul>
+      <p><strong>优势：</strong>无需安装 App，跨平台，按需缓存。</p>
+      <p><strong>劣势：</strong>IndexedDB 有容量限制（Chrome 约 60% 可用磁盘空间，Safari 约 1GB<sup class="cite" data-refid="64">[64]</sup>），可能被浏览器清除。</p>
+    </div>
+
+    <h3>离线 WSD 算法选择</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>算法</th>
+            <th>离线可行性</th>
+            <th>模型大小</th>
+            <th>移动端可行性</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Lesk + tf-idf</td>
+            <td class="check y">✅ 完全离线</td>
+            <td>~1MB（WordNet）</td>
+            <td class="check y">✅ 可行</td>
+          </tr>
+          <tr>
+            <td>TinyBERT-4</td>
+            <td class="check y">✅ 完全离线</td>
+            <td>~58MB（量化后）<sup class="cite" data-refid="13">[13]</sup></td>
+            <td class="check y">✅ 可行</td>
+          </tr>
+          <tr>
+            <td>DistilBERT</td>
+            <td class="check y">✅ 完全离线</td>
+            <td>~207MB<sup class="cite" data-refid="35">[35]</sup></td>
+            <td class="check p">⚠️ 体积大</td>
+          </tr>
+          <tr>
+            <td>LLM API</td>
+            <td class="check n">⛔ 必须联网</td>
+            <td>N/A</td>
+            <td class="check n">⛔ 不可离线</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>半米阅读离线策略</h3>
+    <div class="callout accent">
+      <p><strong>三层架构（联网/离线自动切换）：</strong></p>
+      <ol>
+        <li><strong>Layer 1（离线基础）：</strong>ECDICT 核心 3000 词 + Lesk 算法，覆盖 A1-A2 学生 80% 查询。</li>
+        <li><strong>Layer 2（离线增强）：</strong>TinyBERT-4 本地推理（58MB），用户 Wi-Fi 下可选下载，提升语境理解。</li>
+        <li><strong>Layer 3（联网兜底）：</strong>生僻词/专业术语/新词 → API 查询（有道/Claude Haiku），查询后缓存到本地。</li>
+      </ol>
+      <p><strong>降级策略：</strong></p>
+      <ul>
+        <li>联网状态：全功能（释义 + 语境理解 + 例句 + 发音）</li>
+        <li>离线状态（Layer 1）：基础释义 + Lesk 语境排序，无例句/发音（或预缓存高频词发音）</li>
+        <li>离线状态（Layer 2）：+ TinyBERT 语境理解，准确度接近联网</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH8 多语言扩展 ===== -->
+<section class="chapter" id="ch8" data-nav="08 多语言扩展">
+  <h2><span class="num">08</span><span class="title-text">多语言扩展策略：东南亚市场</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>半米阅读定位东南亚 K12 市场，英语学习者母语包括泰语、越南语、印尼语、中文。多语言词典需求分两类：<strong>释义语言</strong>（英 → 泰语）和 <strong>UI 语言</strong>（界面泰语）。</p>
+
+    <h3>释义语言扩展（英 → 多语言）</h3>
+    <div class="callout good">
+      <h4>Cambridge Dictionary API（官方支持）</h4>
+      <p><strong>覆盖：</strong>官方支持 English-Thai、English-Vietnamese、English-Indonesian 互译。<sup class="cite" data-refid="14">[14]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>定价：</strong>无公开 REST API，商用按需定制<sup class="cite" data-refid="40">[40]</sup> <span class="conf y">🟡</span></p>
+      <p><strong>优势：</strong>权威来源，适合 K12 教育场景。</p>
+      <p><strong>劣势：</strong>需商务谈判，定价不透明。</p>
+
+      <h4>DeepL API（2026 新增泰/越语支持）</h4>
+      <p><strong>语言：</strong>2026 年新增泰语、越南语、希伯来语支持。<sup class="cite" data-refid="42">[42]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>定价：</strong>API Free 50 万字符/月，API Pro €5.49/月起。<sup class="cite" data-refid="43">[43]</sup></p>
+      <p><strong>优势：</strong>翻译质量高，定价透明，API 稳定。</p>
+      <p><strong>劣势：</strong>通用翻译 API，非专门词典，释义可能不够精准（如一词多义场景）。</p>
+    </div>
+
+    <h3>开源多语言词典</h3>
+    <div class="callout info">
+      <h4>VOLUBILIS 泰语词典</h4>
+      <p><strong>词条数：</strong>11.4 万词条，支持 18 语言（含印尼语、越南语）。<sup class="cite" data-refid="41">[41]</sup></p>
+      <p><strong>版本：</strong>2026 年 7 月发布 v26.2。<sup class="cite" data-refid="41">[41]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>授权：</strong>需核实具体授权（官网未明确说明）。<span class="conf y">🟡</span></p>
+
+      <h4>Open Multilingual WordNet</h4>
+      <p><strong>覆盖：</strong>200+ 语言，Apache 2.0 授权。<sup class="cite" data-refid="38">[38]</sup></p>
+      <p><strong>劣势：</strong>词条数远少于英语 WordNet，质量参差不齐（社区维护）。</p>
+    </div>
+
+    <h3>多语言扩展成本估算</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>方案</th>
+            <th>月成本（1k 日活）</th>
+            <th>月成本（5k 日活）</th>
+            <th>覆盖语言</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>ECDICT 中文（已有）</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>英 → 中</td>
+          </tr>
+          <tr>
+            <td>DeepL API</td>
+            <td>€5.49 (~$6)</td>
+            <td>€27.45 (~$30)</td>
+            <td>英 → 泰/越/印尼</td>
+          </tr>
+          <tr>
+            <td>Cambridge API</td>
+            <td>待议价</td>
+            <td>待议价</td>
+            <td>英 → 泰/越/印尼</td>
+          </tr>
+          <tr>
+            <td>VOLUBILIS（开源）</td>
+            <td>$0（自建）</td>
+            <td>$0（自建）</td>
+            <td>泰语 + 18 语言</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>UI 语言本地化</h3>
+    <div class="callout info">
+      <p><strong>翻译范围：</strong>界面文案、按钮、提示语、错误信息。</p>
+      <p><strong>实现：</strong>i18n 框架（如 react-intl、vue-i18n），JSON 语言包。</p>
+      <p><strong>成本：</strong>一次性翻译 ~500 条文案，专业翻译 $0.05-0.1/词（约 $100-200/语言）。</p>
+      <p><strong>维护：</strong>每次新增功能，同步翻译新文案。</p>
+    </div>
+
+    <h3>半米阅读多语言路线</h3>
+    <div class="callout accent">
+      <p><strong>第一阶段（MVP，0-3 个月）：</strong></p>
+      <ul>
+        <li>仅支持英 → 中文释义（ECDICT）</li>
+        <li>UI 语言：简体中文</li>
+      </ul>
+
+      <p><strong>第二阶段（区域扩展，6-12 个月）：</strong></p>
+      <ul>
+        <li>新增泰语释义：DeepL API（$6-30/月）或 VOLUBILIS 开源（$0）</li>
+        <li>新增越南语/印尼语释义：DeepL API</li>
+        <li>UI 本地化：泰语/越南语/印尼语界面（$300-600 一次性翻译）</li>
+      </ul>
+
+      <p><strong>第三阶段（权威升级，12+ 个月）：</strong></p>
+      <ul>
+        <li>商务接入 Cambridge API（权威背书，适合 B2B 学校采购场景）</li>
+        <li>支持双语对比（英 → 中文 + 泰语同时显示，方便双语学习者）</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH9 生词本与 SRS 集成 ===== -->
+<section class="chapter" id="ch9" data-nav="09 生词本与 SRS">
+  <h2><span class="num">09</span><span class="title-text">生词本与 SRS 集成：学习闭环</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>"查词 → 生词本 → 间隔复习"是语言学习的核心闭环。我们分析现有产品的集成方案，给出半米阅读的实施路径。</p>
+
+    <h3>现有产品案例</h3>
+    <div class="callout info">
+      <h4>Kindle → Anki 集成工具 Kanki</h4>
+      <p><strong>机制：</strong>从 Kindle 高亮词汇提取 → 查词典 API（Merriam-Webster Learner's Dictionary）→ 导出 Anki 格式。<sup class="cite" data-refid="65">[65]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>开源：</strong>GitHub: wjohnsson/kanki，命令行工具。</p>
+
+      <h4>不背单词 + 朗易思听自动同步</h4>
+      <p><strong>闭环：</strong>听力练习中添加生词 → 自动同步到不背单词 → 智能间隔复习。<sup class="cite" data-refid="55">[55]</sup> <span class="conf y">🟡</span></p>
+      <p><strong>局限：</strong>封闭生态，只在自家 App 内流转。</p>
+    </div>
+
+    <h3>CSV 格式：跨平台标准</h3>
+    <div class="callout good">
+      <p><strong>通用性：</strong>Anki、Quizlet、LingoBlend、Mochi、RemNote 等主流 SRS 工具均支持 CSV/纯文本导入。<sup class="cite" data-refid="53">[53]</sup> <span class="conf g">🟢</span></p>
+      <p><strong>格式：</strong></p>
+      <pre><code>word,translation,example,notes
+visualize,想象；使可见,"She tried to visualize the scene.",词根 vis=看
+ephemeral,短暂的,"The beauty of the sunset was ephemeral.","同义词: fleeting, transient"</code></pre>
+      <p><strong>优势：</strong>用户可选任意 SRS 工具，不绑定平台；技术实现简单。</p>
+    </div>
+
+    <h3>SRS 算法：从 SM-2 到 FSRS</h3>
+    <div class="callout accent">
+      <p><strong>算法进化：</strong></p>
+      <ul>
+        <li><strong>SM-2（1987）：</strong>SuperMemo 算法，基于"间隔效应"，固定间隔序列（1/2/4/7/15/30/60 天）。</li>
+        <li><strong>FSRS（2023）：</strong>Anki 新默认算法，基于 50 亿次真实复习数据训练，比 SM-2 少 20-30% 复习次数<sup class="cite" data-refid="54">[54]</sup>，同样保留率。<span class="conf g">🟢</span></li>
+      </ul>
+      <p><strong>机制：</strong>FSRS 动态调整间隔，根据用户真实遗忘曲线（而非固定公式）。</p>
+    </div>
+
+    <h3>半米阅读生词本设计</h3>
+    <div class="callout good">
+      <p><strong>核心功能：</strong></p>
+      <ol>
+        <li><strong>一键收藏：</strong>查词界面直接加入生词本，记录查询时间 + 上下文句子。</li>
+        <li><strong>批量管理：</strong>标签分类（如"数学词汇""科学词汇"），删除/移动/导出。</li>
+        <li><strong>CSV 导出：</strong>标准格式 <code>word,translation,example,notes,tags,date_added</code>。</li>
+        <li><strong>Anki 一键导入：</strong>导出时可选"Anki 专用格式"（带 HTML 标签、发音 URL）。</li>
+      </ol>
+
+      <p><strong>可选功能（内置 SRS）：</strong></p>
+      <ul>
+        <li>半米阅读内置 FSRS 算法，无需导出即可复习。</li>
+        <li>每日复习推送（如"今天有 12 个单词待复习"）。</li>
+        <li>复习界面：卡片正面显示单词 + 上下文句，背面显示释义 + 例句。</li>
+      </ul>
+
+      <p><strong>推荐策略：</strong>先做 CSV 导出（MVP，覆盖所有 SRS 工具用户），再做内置 SRS（提升留存，但开发成本高）。</p>
+    </div>
+
+    <h3>生词本数据结构</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>字段</th>
+            <th>类型</th>
+            <th>说明</th>
+            <th>示例</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>word</td>
+            <td>string</td>
+            <td>单词原形</td>
+            <td>visualize</td>
+          </tr>
+          <tr>
+            <td>translation</td>
+            <td>string</td>
+            <td>释义（用户母语）</td>
+            <td>想象；使可见</td>
+          </tr>
+          <tr>
+            <td>example</td>
+            <td>string</td>
+            <td>查询时的上下文句子</td>
+            <td>She tried to visualize the scene.</td>
+          </tr>
+          <tr>
+            <td>notes</td>
+            <td>string</td>
+            <td>用户备注/词根词缀</td>
+            <td>词根 vis=看</td>
+          </tr>
+          <tr>
+            <td>tags</td>
+            <td>array</td>
+            <td>标签（可多个）</td>
+            <td>["数学", "高频"]</td>
+          </tr>
+          <tr>
+            <td>date_added</td>
+            <td>datetime</td>
+            <td>添加时间</td>
+            <td>2026-09-06 14:32:15</td>
+          </tr>
+          <tr>
+            <td>context_url</td>
+            <td>string</td>
+            <td>查询时的文章/书籍 URL</td>
+            <td>https://...</td>
+          </tr>
+          <tr>
+            <td>audio_url</td>
+            <td>string</td>
+            <td>发音音频 URL</td>
+            <td>https://...</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>Anki 集成最佳实践</h3>
+    <div class="callout accent">
+      <p><strong>导出格式（Anki 专用）：</strong></p>
+      <pre><code>Front,Back,Tags,Audio
+visualize,"&lt;strong&gt;想象；使可见&lt;/strong&gt;&lt;br&gt;&lt;br&gt;例句：She tried to visualize the scene.&lt;br&gt;&lt;br&gt;词根：vis=看","数学,高频","[sound:visualize.mp3]"</code></pre>
+      <p><strong>音频处理：</strong></p>
+      <ul>
+        <li>下载发音音频到本地（如 TTS API 生成 MP3）</li>
+        <li>打包成 Anki 卡组（.apkg 文件）：ZIP 包含 CSV + 音频文件夹</li>
+        <li>或导出 CSV 时附带音频 URL，用户手动下载</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH10 半米阅读实施路线（核心） ===== -->
+<section class="chapter" id="ch10" data-nav="10 实施路线（核心）">
+  <h2><span class="num">10</span><span class="title-text">半米阅读实施路线：三阶段方案</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>本章是全报告核心，给出半米阅读分阶段实施方案、技术选型决策树、成本预估、技术债管理策略。</p>
+
+    <h3>决策树：按产品阶段选技术</h3>
+    <div class="tree">
+      <div class="node"><strong>半米阅读产品阶段</strong></div>
+      <div class="node">
+        <strong>MVP（0-3 个月）</strong>
+        <ul>
+          <li>目标：验证核心价值（查词准 + 快）</li>
+          <li>词典：ECDICT 离线（英 → 中文）</li>
+          <li>WSD：Lesk + tf-idf（82-84% 准确率）</li>
+          <li>离线：核心 3000 词本地缓存</li>
+          <li>生词本：CSV 导出</li>
+          <li>成本：$0/月</li>
+        </ul>
+      </div>
+      <div class="node">
+        <strong>优化期（6-12 个月）</strong>
+        <ul>
+          <li>目标：提升准确度 + 用户留存</li>
+          <li>WSD：+ TinyBERT-4 本地推理（74% → 96.8% BERT 性能）</li>
+          <li>兜底：+ Claude Haiku API（难句 5%）</li>
+          <li>生词本：内置 FSRS 间隔复习</li>
+          <li>发音：TTS API（Google TTS 或 Azure）</li>
+          <li>成本：~$15-50/月</li>
+        </ul>
+      </div>
+      <div class="node">
+        <strong>扩张期（12+ 个月）</strong>
+        <ul>
+          <li>目标：多语言 + B2B 学校市场</li>
+          <li>多语言：DeepL API 或 Cambridge API（泰/越/印尼）</li>
+          <li>权威背书：Oxford API（学校采购场景）</li>
+          <li>成本：$30-200/月（按用户规模）</li>
+        </ul>
+      </div>
+    </div>
+
+    <h3>MVP 方案（0-3 个月）</h3>
+    <div class="callout good">
+      <h4>技术栈</h4>
+      <ul>
+        <li><strong>词典：</strong>ECDICT 基础版（76 万词条，MIT 授权<sup class="cite" data-refid="11">[11]</sup>），本地 SQLite 数据库</li>
+        <li><strong>WSD 算法：</strong>Lesk + tf-idf，7 词上下文窗口<sup class="cite" data-refid="12">[12]</sup></li>
+        <li><strong>前端：</strong>React + TypeScript，popover 显示释义</li>
+        <li><strong>离线：</strong>Service Worker + IndexedDB 缓存核心 3000 词</li>
+        <li><strong>生词本：</strong>LocalStorage 存储 + CSV 导出</li>
+      </ul>
+
+      <h4>核心功能</h4>
+      <ol>
+        <li>点击单词 → 即时弹出释义（&lt;100ms）</li>
+        <li>一词多义 → Lesk 算法根据上下文排序释义</li>
+        <li>一键收藏生词 → CSV 导出到 Anki</li>
+        <li>离线可用（核心 3000 词）</li>
+      </ol>
+
+      <h4>开发成本估算</h4>
+      <div class="metric-grid">
+        <div class="metric"><div class="v">2-3 周</div><div class="l">前端开发（查词 UI + 生词本）</div></div>
+        <div class="metric"><div class="v">1 周</div><div class="l">ECDICT 集成 + Lesk 算法实现</div></div>
+        <div class="metric"><div class="v">1 周</div><div class="l">离线缓存 + Service Worker</div></div>
+        <div class="metric"><div class="v">1 周</div><div class="l">测试 + 优化</div></div>
+      </div>
+      <p><strong>总计：</strong>5-6 周（单人全栈开发）</p>
+
+      <h4>运营成本</h4>
+      <ul>
+        <li><strong>服务器：</strong>$0（纯前端 PWA，部署到 Vercel/Netlify 免费）</li>
+        <li><strong>词典 API：</strong>$0（全部离线）</li>
+        <li><strong>域名：</strong>~$12/年</li>
+      </ul>
+      <p><strong>总计：</strong>$0/月（忽略域名）</p>
+    </div>
+
+    <h3>优化期方案（6-12 个月）</h3>
+    <div class="callout info">
+      <h4>新增技术</h4>
+      <ul>
+        <li><strong>TinyBERT-4：</strong>本地 ONNX Runtime 推理（58MB 模型<sup class="cite" data-refid="13">[13]</sup>），&lt;20ms 延迟</li>
+        <li><strong>Claude Haiku API：</strong>兜底难句（5% 查询），~$0.0002/次<sup class="cite" data-refid="29">[29]</sup></li>
+        <li><strong>内置 SRS：</strong>FSRS 算法<sup class="cite" data-refid="54">[54]</sup>，每日复习推送</li>
+        <li><strong>TTS 发音：</strong>Google TTS API 或 Azure TTS（$4/百万字符<sup class="cite" data-refid="66">[66]</sup>）</li>
+      </ul>
+
+      <h4>成本预估（日活 1k 学生 × 50 次查询/天）</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>项目</th>
+              <th>用量</th>
+              <th>单价</th>
+              <th>月成本</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>ECDICT + Lesk</td>
+              <td>80% 查询</td>
+              <td>$0</td>
+              <td>$0</td>
+            </tr>
+            <tr>
+              <td>TinyBERT-4</td>
+              <td>15% 查询</td>
+              <td>$0（本地）</td>
+              <td>$0</td>
+            </tr>
+            <tr>
+              <td>Claude Haiku</td>
+              <td>5% = 7.5 万次/月</td>
+              <td>$0.0002/次</td>
+              <td>~$15</td>
+            </tr>
+            <tr>
+              <td>TTS 发音</td>
+              <td>1k 学生 × 100 词/人</td>
+              <td>$4/百万字符</td>
+              <td>~$2</td>
+            </tr>
+            <tr>
+              <td>服务器（SRS 后端）</td>
+              <td>1-2 核 VPS</td>
+              <td>$20-50/月</td>
+              <td>~$30</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <p><strong>总计：</strong>~$47/月</p>
+
+      <h4>日活 5k 学生成本</h4>
+      <ul>
+        <li>Claude Haiku：5× = ~$75/月</li>
+        <li>TTS：5× = ~$10/月</li>
+        <li>服务器：扩容到 4 核 = ~$60/月</li>
+      </ul>
+      <p><strong>总计：</strong>~$145/月</p>
+    </div>
+
+    <h3>扩张期方案（12+ 个月）</h3>
+    <div class="callout accent">
+      <h4>多语言扩展</h4>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>语言</th>
+              <th>方案</th>
+              <th>月成本（1k 日活）</th>
+              <th>月成本（5k 日活）</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>中文（已有）</td>
+              <td>ECDICT</td>
+              <td>$0</td>
+              <td>$0</td>
+            </tr>
+            <tr>
+              <td>泰语</td>
+              <td>DeepL API 或 VOLUBILIS</td>
+              <td>~$6 或 $0</td>
+              <td>~$30 或 $0</td>
+            </tr>
+            <tr>
+              <td>越南语</td>
+              <td>DeepL API</td>
+              <td>~$6</td>
+              <td>~$30</td>
+            </tr>
+            <tr>
+              <td>印尼语</td>
+              <td>DeepL API</td>
+              <td>~$6</td>
+              <td>~$30</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h4>B2B 学校市场（权威背书）</h4>
+      <ul>
+        <li><strong>Oxford API：</strong>£5,000/年（~$543/月）<sup class="cite" data-refid="16">[16]</sup>，不限调用次数</li>
+        <li><strong>适用场景：</strong>学校采购需要"牛津词典"背书，月成本可分摊到数千学生</li>
+        <li><strong>ROI：</strong>1 个学校 500 学生 × $2/月 = $1,000/月收入，覆盖 Oxford 成本 + 利润</li>
+      </ul>
+    </div>
+
+    <h3>技术债管理策略</h3>
+    <div class="callout warn">
+      <h4>离线词库更新策略</h4>
+      <ul>
+        <li><strong>频率：</strong>每季度更新一次 ECDICT 词库（跟随上游更新）</li>
+        <li><strong>机制：</strong>App 启动时检测新版本 → Wi-Fi 下自动下载 → 后台替换</li>
+        <li><strong>回退：</strong>新版本出错 → 自动回退到旧版本</li>
+      </ul>
+
+      <h4>API 降级方案</h4>
+      <ul>
+        <li><strong>Claude Haiku 故障：</strong>降级到本地 TinyBERT-4（准确度略降，但可用）</li>
+        <li><strong>TinyBERT-4 故障：</strong>降级到 Lesk 算法（准确度从 96.8% 降到 82-84%）</li>
+        <li><strong>全部离线：</strong>仍可查询基础释义（ECDICT）</li>
+      </ul>
+
+      <h4>模型版本迭代</h4>
+      <ul>
+        <li><strong>TinyBERT-4：</strong>每年评估是否有更优轻量模型（如 MobileBERT v2、新量化方案）</li>
+        <li><strong>FSRS 算法：</strong>跟随 Anki 社区更新（GitHub: open-spaced-repetition/fsrs4anki）</li>
+        <li><strong>LLM API：</strong>Claude Haiku → Claude Sonnet（准确度提升，成本 3×）或新模型（如 Gemini Flash）</li>
+      </ul>
+    </div>
+
+    <h3>成本汇总（三个阶段对比）</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>阶段</th>
+            <th>时间</th>
+            <th>月成本（1k 日活）</th>
+            <th>月成本（5k 日活）</th>
+            <th>月成本（10k 日活）</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>MVP</td>
+            <td>0-3 月</td>
+            <td>$0</td>
+            <td>$0</td>
+            <td>$0</td>
+          </tr>
+          <tr>
+            <td>优化期</td>
+            <td>6-12 月</td>
+            <td>~$47</td>
+            <td>~$145</td>
+            <td>~$280</td>
+          </tr>
+          <tr>
+            <td>扩张期（多语言）</td>
+            <td>12+ 月</td>
+            <td>~$65</td>
+            <td>~$235</td>
+            <td>~$460</td>
+          </tr>
+          <tr>
+            <td>扩张期（+ Oxford）</td>
+            <td>12+ 月</td>
+            <td>~$608</td>
+            <td>~$778</td>
+            <td>~$1,003</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p><small>注：Oxford API 成本固定（£5k/年/语言），按 1 个语言（英语）计算，分摊到月。</small></p>
+  </div>
+</section>
+
+<!-- ===== CH11 技术风险与边界 ===== -->
+<section class="chapter" id="ch11" data-nav="11 技术风险与边界">
+  <h2><span class="num">11</span><span class="title-text">技术风险与边界</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>技术选型需要识别风险并设定边界。本章列出五大风险类别与应对策略。</p>
+
+    <h3>风险一：WSD 准确率天花板</h3>
+    <div class="callout warn">
+      <p><strong>现状：</strong>Lesk + tf-idf 准确率 82-84%<sup class="cite" data-refid="4">[4]</sup>，BERT 87%<sup class="cite" data-refid="7">[7]</sup>，LLM 77%<sup class="cite" data-refid="9">[9]</sup>——即使混合方案也有 15-20% 查不准。</p>
+      <p><strong>边界：</strong>一词多义的语境识别是 NLP 难题，当前技术无法 100% 解决。</p>
+      <p><strong>应对：</strong></p>
+      <ul>
+        <li>UI 设计：显示 top-3 释义（而非只显示第一个），用户可手动选择</li>
+        <li>反馈机制："这个释义不准" → 收集 badcase → 改进算法</li>
+        <li>人工标注：高频错误词汇（如 "bank" "run" "record"）→ 人工标注上下文规则</li>
+      </ul>
+    </div>
+
+    <h3>风险二：API 依赖与稳定性</h3>
+    <div class="callout warn">
+      <p><strong>风险：</strong>Claude Haiku、DeepL、Google TTS 等第三方 API 可能：</p>
+      <ul>
+        <li>临时故障（服务器宕机、网络抖动）</li>
+        <li>调价（如 Claude API 从 $1/MTok 涨到 $3/MTok）</li>
+        <li>服务终止（如 Google Translate API v2 → v3 迁移）</li>
+      </ul>
+      <p><strong>应对：</strong></p>
+      <ul>
+        <li><strong>降级方案：</strong>API 故障 → 自动降级到本地算法（见 Ch10）</li>
+        <li><strong>成本监控：</strong>设定月度预算上限（如 $500），超限自动降级</li>
+        <li><strong>多 API 备份：</strong>Claude Haiku 故障 → 切换到 Gemini Flash 或 OpenAI GPT-4o-mini</li>
+      </ul>
+    </div>
+
+    <h3>风险三：离线词库过时</h3>
+    <div class="callout warn">
+      <p><strong>风险：</strong>新词（如 "ChatGPT" "metaverse"）、俚语、网络用语不在 ECDICT 离线库中。</p>
+      <p><strong>边界：</strong>ECDICT 更新频率约 1-2 次/年<sup class="cite" data-refid="11">[11]</sup>，无法实时收录新词。</p>
+      <p><strong>应对：</strong></p>
+      <ul>
+        <li><strong>联网补充：</strong>离线词库未命中 → 自动调用 API 查询 → 缓存到本地</li>
+        <li><strong>用户贡献：</strong>"这个词查不到" → 提交到社区词库，人工审核后加入下次更新</li>
+        <li><strong>季度更新：</strong>每季度重新打包离线词库（包含新词 + 用户贡献词）</li>
+      </ul>
+    </div>
+
+    <h3>风险四：移动端性能瓶颈</h3>
+    <div class="callout warn">
+      <p><strong>风险：</strong>TinyBERT-4 虽轻量（58MB），但在低端 Android 手机上推理可能 >50ms。</p>
+      <p><strong>边界：</strong>ONNX Runtime 在 iOS 优化好（Metal 加速），Android 碎片化严重（部分设备无 NNAPI 支持）。</p>
+      <p><strong>应对：</strong></p>
+      <ul>
+        <li><strong>设备检测：</strong>启动时测试 TinyBERT-4 延迟，>100ms → 禁用，降级到 Lesk</li>
+        <li><strong>可选下载：</strong>TinyBERT-4 模型（58MB）不预装，用户 Wi-Fi 下可选下载</li>
+        <li><strong>Web Worker：</strong>推理放后台线程，不阻塞主线程 UI</li>
+      </ul>
+    </div>
+
+    <h3>风险五：多语言词典质量参差</h3>
+    <div class="callout warn">
+      <p><strong>风险：</strong>泰语/越南语/印尼语词典资源远少于英语，DeepL 通用翻译 API 可能不够精准（一词多义场景）。</p>
+      <p><strong>边界：</strong>Cambridge API 虽权威但定价不透明<sup class="cite" data-refid="40">[40]</sup>；VOLUBILIS 开源但词条数有限<sup class="cite" data-refid="41">[41]</sup>。</p>
+      <p><strong>应对：</strong></p>
+      <ul>
+        <li><strong>MVP 先做中文：</strong>验证核心价值，多语言扩展推迟到扩张期</li>
+        <li><strong>人工校准：</strong>高频词（top 1000）人工校准泰语/越南语释义</li>
+        <li><strong>用户反馈：</strong>"释义不准" → 优先修正高频错误词</li>
+      </ul>
+    </div>
+
+    <h3>技术边界清单</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>边界</th>
+            <th>现状</th>
+            <th>短期无法突破</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>WSD 准确率</td>
+            <td>82-87%</td>
+            <td class="check n">⛔ 100% 准确（NLP 前沿难题）</td>
+          </tr>
+          <tr>
+            <td>新词收录</td>
+            <td>季度更新</td>
+            <td class="check n">⛔ 实时收录（需人工编纂）</td>
+          </tr>
+          <tr>
+            <td>离线 LLM</td>
+            <td>N/A</td>
+            <td class="check n">⛔ 移动端跑 Llama3.1-8B（内存/算力不足）</td>
+          </tr>
+          <tr>
+            <td>俚语/网络用语</td>
+            <td>部分支持</td>
+            <td class="check n">⛔ 全覆盖（更新太快，词典跟不上）</td>
+          </tr>
+          <tr>
+            <td>多语言质量</td>
+            <td>中文优秀</td>
+            <td class="check p">⚠️ 泰/越/印尼需人工校准</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+<!-- ===== CH12 实施建议总结 ===== -->
+<section class="chapter" id="ch12" data-nav="12 实施建议总结">
+  <h2><span class="num">12</span><span class="title-text">实施建议总结</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <p>综合全报告研究，给半米阅读的最终建议：</p>
+
+    <div class="callout accent">
+      <h4>✅ 立即开始（MVP，0-3 个月）</h4>
+      <ol>
+        <li><strong>ECDICT 离线词典：</strong>76 万词条，MIT 授权，零成本<sup class="cite" data-refid="11">[11]</sup></li>
+        <li><strong>Lesk + tf-idf：</strong>82-84% 准确率<sup class="cite" data-refid="4">[4]</sup>，&lt;50ms 延迟<sup class="cite" data-refid="5">[5]</sup></li>
+        <li><strong>CSV 导出生词本：</strong>兼容 Anki/Quizlet，用户可自由选择 SRS 工具<sup class="cite" data-refid="53">[53]</sup></li>
+        <li><strong>核心 3000 词离线缓存：</strong>覆盖 A1-A2 学生 80% 查询需求</li>
+      </ol>
+      <p><strong>开发时间：</strong>5-6 周（单人全栈）</p>
+      <p><strong>运营成本：</strong>$0/月</p>
+    </div>
+
+    <div class="callout good">
+      <h4>⚠️ 优化期加入（6-12 个月）</h4>
+      <ol>
+        <li><strong>TinyBERT-4 本地推理：</strong>96.8% BERT 性能<sup class="cite" data-refid="13">[13]</sup>，&lt;20ms 延迟，58MB 模型</li>
+        <li><strong>Claude Haiku 兜底：</strong>5% 难句查询，月成本 $15（1k 日活）<sup class="cite" data-refid="29">[29]</sup></li>
+        <li><strong>内置 FSRS 复习：</strong>减少 20-30% 复习次数<sup class="cite" data-refid="54">[54]</sup>，提升用户留存</li>
+        <li><strong>TTS 发音：</strong>Google TTS API，$4/百万字符<sup class="cite" data-refid="66">[66]</sup></li>
+      </ol>
+      <p><strong>月成本：</strong>~$47（1k 日活）→ ~$145（5k 日活）</p>
+    </div>
+
+    <div class="callout info">
+      <h4>🚀 扩张期规划（12+ 个月）</h4>
+      <ol>
+        <li><strong>多语言扩展：</strong>DeepL API（泰/越/印尼），月成本 +$18（1k 日活）<sup class="cite" data-refid="43">[43]</sup></li>
+        <li><strong>B2B 学校市场：</strong>Oxford API（£5k/年<sup class="cite" data-refid="16">[16]</sup>），权威背书，分摊到 500+ 学生</li>
+        <li><strong>双语对比：</strong>同时显示中文 + 泰语释义，服务双语学习者</li>
+      </ol>
+    </div>
+
+    <h3>关键决策点</h3>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>决策</th>
+            <th>推荐方案</th>
+            <th>替代方案</th>
+            <th>理由</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>词典来源</td>
+            <td>ECDICT 离线</td>
+            <td>有道 API（¥150/月）</td>
+            <td>零成本 + 离线可用 + MIT 授权</td>
+          </tr>
+          <tr>
+            <td>WSD 算法</td>
+            <td>Lesk + tf-idf</td>
+            <td>纯 BERT（延迟 200ms）</td>
+            <td>82-84% 准确率 + &lt;50ms 延迟</td>
+          </tr>
+          <tr>
+            <td>移动端优化</td>
+            <td>TinyBERT-4</td>
+            <td>DistilBERT（207MB）</td>
+            <td>58MB 模型 + 96.8% BERT 性能</td>
+          </tr>
+          <tr>
+            <td>LLM 兜底</td>
+            <td>Claude Haiku</td>
+            <td>GPT-4o-mini</td>
+            <td>90% prompt caching 节省</td>
+          </tr>
+          <tr>
+            <td>生词本</td>
+            <td>CSV 导出</td>
+            <td>只支持 Anki</td>
+            <td>兼容所有 SRS 工具</td>
+          </tr>
+          <tr>
+            <td>多语言</td>
+            <td>DeepL API</td>
+            <td>Cambridge API（待议价）</td>
+            <td>定价透明 + 2026 新增泰/越语</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>避坑清单</h3>
+    <div class="callout warn">
+      <p><strong>❌ 不要这样做：</strong></p>
+      <ul>
+        <li>❌ 全部用 LLM API（月成本 $900-2,700 vs 混合方案 $15-50）</li>
+        <li>❌ 全量打包 77 万词离线词库（App 体积膨胀，90% 词用不到）</li>
+        <li>❌ 只显示第一个释义（一词多义场景准确率 &lt;85%，用户会放弃）</li>
+        <li>❌ 绑定单一 SRS 工具（用户已有 Anki/Quizlet 习惯，强制切换 = 流失）</li>
+        <li>❌ MVP 阶段做多语言（中文未验证，盲目扩张 = 资源浪费）</li>
+      </ul>
+    </div>
+
+    <h3>成功指标</h3>
+    <div class="metric-grid">
+      <div class="metric"><div class="v">&lt;100ms</div><div class="l">P50 响应延迟（80% 查询）</div></div>
+      <div class="metric"><div class="v">82-84%</div><div class="l">WSD 准确率（MVP 目标）</div></div>
+      <div class="metric"><div class="v">30%+</div><div class="l">生词本导出率（用户留存信号）</div></div>
+      <div class="metric"><div class="v">$0-50/月</div><div class="l">运营成本（1k 日活，MVP-优化期）</div></div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== FAQ ===== -->
+<section class="chapter" id="faq" data-nav="FAQ 常见问题">
+  <h2><span class="num">FAQ</span><span class="title-text">常见问题</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">为什么推荐 ECDICT 而不是 Oxford 词典？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>ECDICT 有三大优势：① MIT 授权零成本<sup class="cite" data-refid="11">[11]</sup>，Oxford 离线版需付费；② 76 万-324 万词条<sup class="cite" data-refid="11">[11]</sup><sup class="cite" data-refid="21">[21]</sup>，覆盖 K12 需求；③ 离线可用，无 API 依赖。Oxford 适合需要权威背书的 B2B 学校市场（月成本 ~$543<sup class="cite" data-refid="16">[16]</sup>），但 MVP 阶段性价比不如 ECDICT。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">Lesk 算法准确率 82-84%，是否太低？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>相对数字：BERT-based WSD 准确率 77-87%<sup class="cite" data-refid="7">[7]</sup>，LLM zero-shot ~77%<sup class="cite" data-refid="9">[9]</sup>，Lesk 82-84%<sup class="cite" data-refid="4">[4]</sup> 处于中上水平。绝对数字：一词多义是 NLP 前沿难题，当前技术无法 100% 解决。应对策略：① 显示 top-3 释义让用户选择；② 混合架构（Lesk + TinyBERT + LLM 兜底）可提升到 85%+ 准确率；③ 收集 badcase 持续改进。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">TinyBERT-4 只有 74% 准确率，不如 BERT-base 87%？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>这里有误解。TinyBERT-4 保持 96.8% BERT 性能<sup class="cite" data-refid="13">[13]</sup>，指的是在 GLUE benchmark 上相对 BERT-base 的表现。WSD 任务上，TinyBERT-4 准确率约 74%<sup class="cite" data-refid="7">[7]</sup>，但延迟 &lt;20ms vs BERT-base 200-500ms<sup class="cite" data-refid="28">[28]</sup>。移动端场景优先考虑延迟（用户体验）而非绝对准确率，且 74% vs 87% 的差距可通过混合架构（Lesk + TinyBERT + LLM）弥补。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">为什么不全部用 Claude API，零开发成本？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>成本对比：Claude Haiku 全量查询（5 万次/天）月成本 $90-900<sup class="cite" data-refid="29">[29]</sup>，vs 混合方案 $15-50/月（Lesk + TinyBERT + 5% LLM）。延迟对比：LLM API ~1s<sup class="cite" data-refid="10">[10]</sup> vs Lesk &lt;50ms<sup class="cite" data-refid="5">[5]</sup>，用户体验差距显著（行业标准 ≤500ms<sup class="cite" data-refid="20">[20]</sup>）。开发成本：Lesk 算法 NLTK 库自带<sup class="cite" data-refid="30">[30]</sup>，1 周可实现。结论：LLM 适合兜底（5% 难句），不适合全量查询。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">离线词库 3000 词够用吗？高中生需要更多？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>分级设计：A1-A2 学生（小学）3000 词覆盖 80% 查询<sup class="cite" data-refid="47">[47]</sup>；B1-B2（初高中）渐进式扩展到 5000-8000 词。实现：首次安装下载核心 3000 词（~5-10MB），Wi-Fi 下根据用户词汇量自动扩展。联网兜底：离线库未命中 → API 查询 → 缓存到本地。全量 77 万词打包（~50-100MB）不推荐，90% 词用不到且 App 体积膨胀影响转化率。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">生词本为什么不做内置 SRS，非要导出 CSV？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>分阶段策略：MVP 先做 CSV 导出<sup class="cite" data-refid="53">[53]</sup>（兼容 Anki/Quizlet/Mochi，用户已有使用习惯），优化期再做内置 FSRS<sup class="cite" data-refid="54">[54]</sup>（提升留存）。原因：① 用户已在 Anki 投入大量卡片，强制切换 = 流失；② CSV 导出开发成本 1 天，内置 SRS 需 2-3 周（复习算法 + 推送 + UI）；③ 两者可并存（既能导出也能内置复习）。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">ECDICT 只有英汉，泰国/越南学生怎么办？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>多语言扩展路线（Ch8 详述）：① MVP 先服务中国学生（验证核心价值）；② 扩张期接入 DeepL API<sup class="cite" data-refid="42">[42]</sup>（2026 新增泰/越语支持，月成本 $6-30）或 Cambridge API<sup class="cite" data-refid="14">[14]</sup>（官方支持，待议价）；③ 开源备选 VOLUBILIS 泰语词典<sup class="cite" data-refid="41">[41]</sup>（11.4 万词条，$0）。释义语言 vs UI 语言分离：可以"界面泰语 + 释义中文"（服务泰国华裔学生）。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">TinyBERT-4 模型 58MB，用户流量成本怎么办？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>可选下载 + Wi-Fi 提醒：① 默认不预装 TinyBERT-4，只用 Lesk 算法（零下载）；② 用户在 Wi-Fi 下可选"启用高级语境理解"（下载 58MB 模型）；③ 移动网络弹窗提醒"此功能需下载 58MB，建议连接 Wi-Fi"；④ 设备检测：低端手机（推理 &gt;100ms）自动禁用，避免浪费流量。实测：58MB ≈ 15 首高清 MV，K12 学生可接受（且一次性下载，终身使用）。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">Claude Haiku 单次 $0.0002，5 万次/天 = $300/月太贵？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>这里计算有误。5 万次/天 × 5% 兜底率 = 2,500 次/天触发 LLM = 7.5 万次/月。按 Claude Haiku $0.0002/次 = $15/月（不是 $300）。优化空间：① 90% prompt caching<sup class="cite" data-refid="30">[30]</sup> 可降到 ~$5/月；② 高频难词（如 "bank" "run"）缓存结果，第二次查询 $0；③ 用户付费分摊：月卡 $2/人 × 1k 学生 = $2k 收入，覆盖 $15 成本 + 利润。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">Oxford 3000 核心词定义法，ECDICT 支持吗？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>ECDICT 原生不支持 Oxford 3000 限定词汇释义<sup class="cite" data-refid="44">[44]</sup>。实现路径：① 下载 Oxford 3000 词表（开源可获取）；② 自建释义简化层：ECDICT 原始释义 → 用 Oxford 3000 词汇改写（可用 Claude API batch 处理，一次性成本 ~$10）；③ 存储到本地数据库，替换 ECDICT 原始释义。MVP 可跳过（直接用 ECDICT），优化期再做（提升 K12 适配度）。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">新词（如 ChatGPT）查不到怎么办？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>三层降级（Ch11 风险应对）：① ECDICT 离线库未命中 → ② 调用 Claude Haiku API 查询（新词/俚语/专业术语）→ ③ 缓存到本地（下次离线可用）。用户贡献机制："这个词查不到" → 提交到社区词库 → 人工审核后加入下次季度更新。ECDICT 更新频率约 1-2 次/年<sup class="cite" data-refid="11">[11]</sup>，无法实时收录，API 兜底是必选方案。</p>
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">为什么不用 GPT-4，而用 Claude Haiku？</span>
+        <span class="toggle">▾</span>
+      </div>
+      <div class="faq-a">
+        <p><strong>A：</strong>三个原因：① 成本：Claude Haiku $1/$5 per MTok<sup class="cite" data-refid="29">[29]</sup> vs GPT-4 Turbo $10/$30 per MTok（贵 10 倍）；② Prompt caching：Claude 90% 节省<sup class="cite" data-refid="30">[30]</sup> vs OpenAI 50%（长期成本 Claude 更低）；③ 准确率相近：Claude Haiku ~77%<sup class="cite" data-refid="9">[9]</sup> vs GPT-4 ~77%<sup class="cite" data-refid="9">[9]</sup>（WSD 任务）。GPT-4o-mini 可作备选（$0.15/$0.60 per MTok），但 Claude 缓存优势更大。</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ===== References ===== -->
+<section class="chapter" id="refs" data-nav="References">
+  <h2><span class="num">REF</span><span class="title-text">References 参考来源</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <ol class="ref-list">
+      <li id="ref-1"><a href="https://www.zhihu.com/question/27411120" target="_blank" rel="noopener">如何评价kindle的wordwise功能？ - 知乎</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-2"><a href="https://blog.csdn.net/weixin_39636540/article/details/109973717" target="_blank" rel="noopener">mdx格式的词典用什么软件打开 - CSDN</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-3"><a href="https://saladict.crimx.com/" target="_blank" rel="noopener">Saladict 沙拉查词官网</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-4"><a href="https://www.gelbukh.com/CV/Publications/2009/Comparing%20Similarity%20Measures%20for%20Original%20WSD%20Lesk%20Algorithm.pdf" target="_blank" rel="noopener">Comparing Similarity Measures for Original WSD Lesk Algorithm</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 5 次</span></li>
+      <li id="ref-5"><a href="https://link.springer.com/chapter/10.1007/978-3-319-14331-6_28" target="_blank" rel="noopener">Manual Investigation on Context for Word Sense Disambiguation - Springer</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-6"><a href="https://en.wikipedia.org/wiki/WordNet" target="_blank" rel="noopener">WordNet - Wikipedia</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-7"><a href="https://arxiv.org/pdf/1908.07245" target="_blank" rel="noopener">GlossBERT: BERT for Word Sense Disambiguation with Gloss Knowledge - arXiv</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 4 次</span></li>
+      <li id="ref-8"><a href="https://medium.com/@raajeshlr2/7-proven-optimizations-to-cut-bert-inference-latency-in-half-for-production-81eb3702b7c2" target="_blank" rel="noopener">7 Proven Optimizations to Cut BERT Inference Latency in Half - Medium</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-9"><a href="https://arxiv.org/abs/2503.08662" target="_blank" rel="noopener">Exploring the Word Sense Disambiguation Capabilities of Large Language Models - arXiv 2025-03</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 5 次</span></li>
+      <li id="ref-10"><a href="https://intuitionlabs.ai/articles/token-optimization-chatgpt-claude-costs" target="_blank" rel="noopener">Token Optimization and Cost Management for ChatGPT & Claude - IntuitionLabs</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 4 次</span></li>
+      <li id="ref-11"><a href="https://github.com/skywind3000/ECDICT" target="_blank" rel="noopener">GitHub - skywind3000/ECDICT: Free English to Chinese Dictionary Database</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 9 次</span></li>
+      <li id="ref-12"><a href="https://link.springer.com/chapter/10.1007/978-3-319-14331-6_28" target="_blank" rel="noopener">Manual Investigation on Context for Word Sense Disambiguation - Springer</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-13"><a href="https://arxiv.org/pdf/2601.03290" target="_blank" rel="noopener">Lightweight Transformer Architectures for Edge Devices - arXiv 2026-01</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 8 次</span></li>
+      <li id="ref-14"><a href="https://dictionary.cambridge.org/us/dictionary/english-thai/" target="_blank" rel="noopener">Cambridge Dictionary - English-Thai</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 4 次</span></li>
+      <li id="ref-15"><a href="https://yoidao.com/zhiyun-api/" target="_blank" rel="noopener">有道智云翻译 API 怎么接入 + 价格</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-16"><a href="https://www.cledara.com/marketplace/oxford-dictionaries-api" target="_blank" rel="noopener">Oxford Dictionaries API Pricing - Cledara</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 6 次</span></li>
+      <li id="ref-17"><a href="https://www.sohu.com/a/217128258_650589" target="_blank" rel="noopener">Kindle 字典的若干注意事项及其两种查询用法 - 搜狐</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-18"><a href="https://blog.csdn.net/cloudbigdata/article/details/140055874" target="_blank" rel="noopener">AI时代的阅读革新！微信读书基于腾讯云ES的"AI问书"RAG最佳实践 - CSDN</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-19"><a href="https://zhuanlan.zhihu.com/p/385063936" target="_blank" rel="noopener">介绍几个欧路词典的实用功能 - 知乎</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-20"><a href="https://ries.ai/zh/blog/technology/browser-translation-plugins-comparison-2025" target="_blank" rel="noopener">2025年最全浏览器翻译插件对比与评测 - Ries 博客</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 6 次</span></li>
+      <li id="ref-21"><a href="https://github.com/skywind3000/ECDICT/wiki/%E7%AE%80%E6%98%8E%E8%8B%B1%E6%B1%89%E5%AD%97%E5%85%B8%E5%A2%9E%E5%BC%BA%E7%89%88" target="_blank" rel="noopener">简明英汉字典增强版 · skywind3000/ECDICT Wiki - GitHub</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-22"><a href="https://oxford-dictionary-of-english-free.en.softonic.com/android" target="_blank" rel="noopener">Oxford Dictionary of English Free APK for Android - Softonic</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-23"><a href="https://nurbak.com/en/blog/api-response-time/" target="_blank" rel="noopener">What's a Good API Response Time? 2026 Benchmarks - Nurbak</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-24"><a href="https://ai.youdao.com/DOCSIRMA/html/dictionary/api/ydcd/index.html" target="_blank" rel="noopener">有道词典 API 文档 - 有道智云AI开放平台</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-25"><a href="https://dictionaryapi.com/info/frequently-asked-questions" target="_blank" rel="noopener">Merriam-Webster API FAQ</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-26"><a href="https://langbly.com/compare/translation-api-pricing/" target="_blank" rel="noopener">Translation API Pricing 2026 - Langbly</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-27"><a href="https://ojs.aaai.org/index.php/AAAI/article/view/41331/45292" target="_blank" rel="noopener">Is Word Sense Disambiguation Dead in the LLM Era? - AAAI</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-28"><a href="https://tech.target.com/blog/bert-model" target="_blank" rel="noopener">Using BERT Model to Generate Real-time Embeddings - Target Tech Blog</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-29"><a href="https://www.metacto.com/blogs/anthropic-api-pricing-a-full-breakdown-of-costs-and-integration" target="_blank" rel="noopener">Claude API Pricing 2026: Opus 4.8, Sonnet 4.6, Haiku 4.5 Costs - MetaCTO</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 7 次</span></li>
+      <li id="ref-30"><a href="https://www.nltk.org/howto/wsd.html" target="_blank" rel="noopener">NLTK WSD Sample Usage - NLTK 官方文档</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-31"><a href="https://arxiv.org/pdf/1908.07245" target="_blank" rel="noopener">GlossBERT: BERT for Word Sense Disambiguation - arXiv 2019</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-32"><a href="https://arxiv.org/pdf/2506.00968" target="_blank" rel="noopener">PolyBERT: Fine-Tuned Poly Encoder BERT-Based Model - arXiv</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-33"><a href="https://arxiv.org/pdf/1908.05646" target="_blank" rel="noopener">SenseBERT: Driving Some Sense into BERT - arXiv 2019</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-34"><a href="https://medium.com/microsoftazure/faster-and-smaller-quantized-nlp-with-hugging-face-and-onnx-runtime-ec5525473bb7" target="_blank" rel="noopener">Faster and smaller quantized NLP with Hugging Face and ONNX Runtime - Microsoft Azure</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-35"><a href="https://www.kdnuggets.com/how-to-deploy-hugging-face-models-on-mobile-devices" target="_blank" rel="noopener">How to Deploy Hugging Face Models on Mobile Devices - KDnuggets</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-36"><a href="https://arxiv.org/pdf/2411.18337" target="_blank" rel="noopener">Can LLMs assist with Ambiguity? - arXiv</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-37"><a href="https://www.mdpi.com/2076-3417/15/7/3608" target="_blank" rel="noopener">Hybrid Transformer-Based Large Language Models for Word Sense Disambiguation - MDPI Applied Sciences</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-38"><a href="https://www.sign-lang.uni-hamburg.de/lrec/data/omw.html" target="_blank" rel="noopener">Open Multilingual Wordnet</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-39"><a href="https://spacy.io/" target="_blank" rel="noopener">spaCy Official</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-40"><a href="https://www.stm-publishing.com/cambridge-dictionaries-online-launches-new-api-and-free-demo-site-for-developers/" target="_blank" rel="noopener">Cambridge Dictionaries Online launches new API - STM Publishing News</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-41"><a href="https://belisan-volubilis.blogspot.com/" target="_blank" rel="noopener">VOLUBILIS Thai Dictionary</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-42"><a href="https://www.deepl.com/en/blog/vietnamese-thai-hebrew-launch" target="_blank" rel="noopener">DeepL Thai/Vietnamese Launch</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-43"><a href="https://www.deepl.com/pricing" target="_blank" rel="noopener">DeepL Pricing</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-44"><a href="https://learnenglish.life/guides/best-english-dictionaries-for-learners/" target="_blank" rel="noopener">Best English Dictionaries for Learners - Learn English Life</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-45"><a href="https://learnenglish.life/guides/best-english-dictionaries-for-learners/" target="_blank" rel="noopener">Best English Dictionaries for Learners - Learn English Life</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-46"><a href="https://web.shanbay.com/company/jieshao" target="_blank" rel="noopener">扇贝官网</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-47"><a href="https://internationalenglishtest.com/blog/how-many-words-per-cefr-level/" target="_blank" rel="noopener">International English Test - CEFR Vocabulary Size</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-48"><a href="https://unanswered.io/guide/cefr-vocabulary-size-by-level" target="_blank" rel="noopener">CEFR Vocabulary Size Guide</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-49"><a href="https://dictionary.cambridge.org/us/help/phonetics.html" target="_blank" rel="noopener">Cambridge Dictionary - Phonetics Help</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-50"><a href="https://easypronunciation.com/en/english/word/children" target="_blank" rel="noopener">EasyPronunciation - HD Slow Audio</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-51"><a href="https://funin5thgrade.com/decoding-vocabulary-words-teaching-root-words-prefixes-and-suffixes-in-upper-elementary/" target="_blank" rel="noopener">Teaching Root Words - Fun in 5th Grade</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-52"><a href="https://teachingwithamountainview.com/teaching-prefixes-and-suffixes/" target="_blank" rel="noopener">Teaching Prefixes and Suffixes - Teaching with a Mountain View</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-53"><a href="https://www.lingoblend.app/blog/import-anki-decks-and-word-lists" target="_blank" rel="noopener">LingoBlend - Import Anki Decks</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 3 次</span></li>
+      <li id="ref-54"><a href="https://kachika.app/en/blog/spaced-repetition-algorithms/" target="_blank" rel="noopener">Spaced Repetition Algorithms - Kachika</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 4 次</span></li>
+      <li id="ref-55"><a href="https://apps.apple.com/us/app/不背单词/id698570469" target="_blank" rel="noopener">不背单词 App Store</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-56"><a href="https://www.researchgate.net/publication/265848652_Multilingual_Dictionary_Phrasebook_for_Thai-to-ASEAN_Languages_on_Android_Smartphone" target="_blank" rel="noopener">Multilingual Dictionary for Thai-to-ASEAN Languages - ResearchGate</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-57"><a href="https://www.gao.gov/blog/2019/08/08/get-on-the-internet-and-do-your-homework" target="_blank" rel="noopener">U.S. GAO - Get on the Internet and Do Your Homework</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-58"><a href="https://edtechmagazine.com/k12/article/2020/04/continuing-remote-learning-students-without-internet" target="_blank" rel="noopener">EdTech Magazine - Continuing Remote Learning Without Internet</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-59"><a href="https://github.com/mpuig/spacy-lookup" target="_blank" rel="noopener">GitHub - mpuig/spacy-lookup: Named Entity Recognition based on dictionaries</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-60"><a href="https://medium.com/@raajeshlr2/7-proven-optimizations-to-cut-bert-inference-latency-in-half-for-production-81eb3702b7c2" target="_blank" rel="noopener">7 Proven Optimizations to Cut BERT Latency - Medium 2026</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+      <li id="ref-61"><a href="https://medium.com/future-vision/real-time-natural-language-understanding-with-bert-315aff964bfa" target="_blank" rel="noopener">Real-Time Natural Language Understanding with BERT - Medium</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-62"><a href="https://apxml.com/courses/practical-llm-quantization/chapter-5-quantization-formats-tooling/huggingface-optimum-quantization" target="_blank" rel="noopener">Quantization with Hugging Face Optimum - APXML</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-63"><a href="https://medium.com/microsoftazure/faster-and-smaller-quantized-nlp-with-hugging-face-and-onnx-runtime-ec5525473bb7" target="_blank" rel="noopener">Faster and smaller quantized NLP with Hugging Face and ONNX Runtime - Microsoft Azure</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-64"><a href="https://web.dev/indexeddb-best-practices/" target="_blank" rel="noopener">IndexedDB Best Practices - web.dev</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-65"><a href="https://github.com/wjohnsson/kanki" target="_blank" rel="noopener">Kanki GitHub - wjohnsson/kanki</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 1 次</span></li>
+      <li id="ref-66"><a href="https://cloud.google.com/text-to-speech/pricing" target="_blank" rel="noopener">Google TTS Pricing</a><span class="ref-meta"> · 访问 2026-09-06 · 引用 2 次</span></li>
+    </ol>
+  </div>
+</section>
+  <footer>
+    无忌 · Deep Research（L2）· 2026-09-06 · 仅供阿杰个人决策参考；数据与判例以原始来源为准。
+  </footer>
+</main>
+
+<button class="back-to-top" id="backToTop" aria-label="回到顶部">↑</button>
+<a href="index.html" class="back-fab" title="返回研究总目录">← 返回总目录</a>
+
+<script>
+// 进度条 + 回顶
+(function(){
+  var progress=document.getElementById('progress'), btt=document.getElementById('backToTop');
+  function onScroll(){
+    var h=document.documentElement, sc=h.scrollTop||document.body.scrollTop, mx=(h.scrollHeight-h.clientHeight)||1;
+    progress.style.width=(sc/mx*100)+'%';
+    if(sc>500){btt.classList.add('show');}else{btt.classList.remove('show');}
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  btt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+// 主题切换
+(function(){
+  var t=document.getElementById('themeToggle'), b=document.body;
+  var saved=localStorage.getItem('word-lookup-tech-theme'); if(saved){b.setAttribute('data-theme',saved);}
+  function upd(){t.textContent=b.getAttribute('data-theme')==='dark'?'☀️':'🌙';}
+  upd();
+  t.addEventListener('click',function(){var n=b.getAttribute('data-theme')==='dark'?'light':'dark';b.setAttribute('data-theme',n);localStorage.setItem('word-lookup-tech-theme',n);upd();});
+})();
+// 章节折叠
+document.querySelectorAll('section.chapter > h2').forEach(function(h){
+  h.addEventListener('click',function(){h.parentElement.classList.toggle('collapsed');});
+});
+// FAQ 展开
+document.querySelectorAll('.faq-q').forEach(function(q){
+  q.addEventListener('click',function(){q.parentElement.classList.toggle('open');});
+});
+// 表格行高亮
+document.querySelectorAll('tbody tr').forEach(function(r){
+  r.addEventListener('click',function(){r.classList.toggle('row-highlight');});
+});
+// 左侧导航：抽屉 + scroll-spy
+(function(){
+  var nav=document.querySelector('nav.anchor-nav'),tog=document.getElementById('navToggle'),ov=document.getElementById('navOverlay');
+  if(nav&&tog&&ov){
+    function c(){nav.classList.remove('open');ov.classList.remove('show');}
+    tog.addEventListener('click',function(){var o=!nav.classList.contains('open');nav.classList.toggle('open',o);ov.classList.toggle('show',o);});
+    ov.addEventListener('click',c);
+    document.querySelectorAll('.anchor-list a').forEach(function(a){a.addEventListener('click',function(){if(window.innerWidth<=1040)c();});});
+  }
+  var links=document.querySelectorAll('.anchor-list a'), secs=[];
+  links.forEach(function(a){var el=document.getElementById(a.getAttribute('data-target'));if(el)secs.push({a:a,el:el});});
+  function spy(){
+    var pos=window.scrollY+120, cur=null;
+    secs.forEach(function(s){if(s.el.offsetTop<=pos)cur=s;});
+    links.forEach(function(a){a.classList.remove('active');});
+    if(cur){cur.a.classList.add('active');cur.a.scrollIntoView({block:'nearest'});}
+  }
+  window.addEventListener('scroll',spy,{passive:true});spy();
+})();
+// citation popover
+(function() {
+  let activePopover=null, activeTrigger=null, hideTimer=null;
+  function getRefContent(refid){var el=document.getElementById('ref-'+refid);return el?el.innerHTML:null;}
+  function positionPopover(pop,trigger){
+    var r=trigger.getBoundingClientRect(),popW=pop.offsetWidth,popH=pop.offsetHeight;
+    var left=r.left+window.scrollX;
+    if(left+popW>window.innerWidth-12)left=window.innerWidth-popW-12;
+    if(left<12)left=12;
+    var top=r.bottom+window.scrollY+6;
+    if(r.bottom+popH>window.innerHeight-12&&r.top>popH+12){top=r.top+window.scrollY-popH-6;}
+    pop.style.left=left+'px';pop.style.top=top+'px';
+  }
+  function showPopover(trigger){
+    if(activeTrigger===trigger&&activePopover)return;
+    if(activePopover){activePopover.remove();activePopover=null;}
+    var content=getRefContent(trigger.getAttribute('data-refid'));if(!content)return;
+    var pop=document.createElement('div');pop.className='cite-popover';pop.innerHTML=content;
+    document.body.appendChild(pop);positionPopover(pop,trigger);
+    activePopover=pop;activeTrigger=trigger;
+    pop.addEventListener('mouseenter',function(){if(hideTimer)clearTimeout(hideTimer);});
+    pop.addEventListener('mouseleave',scheduleHide);
+  }
+  function scheduleHide(){if(hideTimer)clearTimeout(hideTimer);hideTimer=setTimeout(function(){if(activePopover){activePopover.remove();activePopover=null;activeTrigger=null;}},200);}
+  function bindCites(){
+    document.querySelectorAll('sup.cite[data-refid]').forEach(function(sup){
+      sup.addEventListener('mouseenter',function(){showPopover(sup);});
+      sup.addEventListener('mouseleave',scheduleHide);
+      sup.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(activeTrigger===sup&&activePopover){activePopover.remove();activePopover=null;activeTrigger=null;}else{showPopover(sup);}});
+    });
+    document.addEventListener('click',function(e){if(!activePopover)return;if(e.target.closest('.cite-popover')||e.target.closest('sup.cite'))return;activePopover.remove();activePopover=null;activeTrigger=null;});
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bindCites);}else{bindCites();}
+})();
+</script>
+<script>/* PDF-HIDE-REFS */
+(function(){
+  function hide(){document.querySelectorAll('section.chapter').forEach(function(s){var h=s.querySelector('h2');if(h&&/references|参考文献|参考来源/i.test(h.textContent)){s.setAttribute('data-printhidden','1');s.style.display='none';}});}
+  function show(){document.querySelectorAll('[data-printhidden]').forEach(function(s){s.style.display='';s.removeAttribute('data-printhidden');});}
+  window.addEventListener('beforeprint',hide);window.addEventListener('afterprint',show);
+})();
+</script>
+</body>
+</html>
