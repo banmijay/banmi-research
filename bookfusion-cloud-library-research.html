@@ -1,0 +1,1188 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>BookFusion 云端书库竞品研究 · 无忌 Deep Research · 2026-09-16</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,600;0,9..144,900;1,9..144,400;1,9..144,900&family=Noto+Serif+SC:wght@500;700;900&family=Noto+Sans+SC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #f3efe7;
+    --bg-soft: #ece5d8;
+    --bg-elevated: #fbf9f4;
+    --bg-stripe: #efe7d8;
+    --text: #2e2a24;
+    --text-soft: #6b6255;
+    --text-mute: #938979;
+    --border: #ddd3c2;
+    --border-strong: #cbbfa9;
+    --accent: #bf5d38;
+    --accent-soft: #f1ddd0;
+    --accent-text: #a04829;
+    --good: #5f7a3e;
+    --good-soft: #cfdab4;
+    --warn: #9a6a16;
+    --warn-soft: #f6e6c8;
+    --bad: #b5462f;
+    --bad-soft: #f3d8cf;
+    --info: #5b7d8c;
+    --info-soft: #cddbe1;
+    --code-bg: #efe7d8;
+    --purple: #8a5a6f;
+    --purple-soft: #ecd9e1;
+    --shadow: 0 8px 22px -16px rgba(70,55,35,.40);
+    --shadow-lg: 0 22px 50px -24px rgba(70,55,35,.50);
+    --radius: 10px;
+    --radius-lg: 16px;
+    --serif: "Fraunces","Noto Serif SC",Georgia,serif;
+    --sans: "Noto Sans SC",system-ui,-apple-system,"PingFang SC",sans-serif;
+  }
+  [data-theme="dark"] {
+    --bg: #221f1a;
+    --bg-soft: #2c2822;
+    --bg-elevated: #2a2620;
+    --bg-stripe: #26221c;
+    --text: #ece4d6;
+    --text-soft: #c3b8a6;
+    --text-mute: #998f7e;
+    --border: #3c362e;
+    --border-strong: #4d463b;
+    --accent: #e2825c;
+    --accent-soft: #3a261c;
+    --accent-text: #ef9a76;
+    --good: #9bbf6a;
+    --good-soft: #2e3a1d;
+    --warn: #d9a441;
+    --warn-soft: #3d2f12;
+    --bad: #e08163;
+    --bad-soft: #3d1f16;
+    --info: #8fb3c2;
+    --info-soft: #1d2e34;
+    --code-bg: #1a1712;
+    --purple: #c79bb0;
+    --purple-soft: #33222a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.4), 0 1px 2px rgba(0,0,0,0.3);
+    --shadow-lg: 0 10px 25px rgba(0,0,0,0.5), 0 4px 10px rgba(0,0,0,0.3);
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html { scroll-behavior: smooth; scroll-padding-top: 70px; }
+  body {
+    margin: 0;
+    font-family: var(--sans);
+    font-size: 16px;
+    line-height: 1.7;
+    color: var(--text);
+    background: var(--bg);
+    background-image: radial-gradient(900px 500px at 12% -8%, rgba(191,93,56,.10), transparent 60%), radial-gradient(800px 480px at 105% 8%, rgba(125,154,86,.12), transparent 55%);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+    padding-bottom: 60px;
+    transition: background-color .25s, color .25s;
+  }
+  body::before { content:""; position:fixed; inset:0; pointer-events:none; z-index:99; opacity:.03; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+  #progress { position: fixed; top: 0; left: 0; height: 3px; width: 0%; background: linear-gradient(90deg, var(--accent), var(--purple)); z-index: 1000; transition: width .1s linear; }
+  header.topbar { position: sticky; top: 0; z-index: 50; background: color-mix(in srgb, var(--bg) 88%, transparent); backdrop-filter: saturate(180%) blur(14px); -webkit-backdrop-filter: saturate(180%) blur(14px); border-bottom: 1px solid var(--border); }
+  .topbar-inner { max-width: 980px; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 10px; }
+  .brand { font-family: var(--serif); font-weight: 700; font-size: 15px; letter-spacing: .2px; color: var(--text); white-space: nowrap; }
+  .brand .tag { margin-left: 6px; font-weight: 500; font-size: 11px; color: var(--text-mute); padding: 2px 7px; border: 1px solid var(--border); border-radius: 999px; font-family: var(--sans); }
+  .topbar-spacer { flex: 1; }
+  .icon-btn { width: 44px; height: 44px; border-radius: 999px; display: inline-flex; align-items: center; justify-content: center; border: 1px solid var(--border); background: var(--bg-elevated); color: var(--text); cursor: pointer; font-size: 18px; transition: transform .15s, background-color .15s; }
+  .icon-btn:active { transform: scale(.94); }
+  main { max-width: 980px; margin: 0 auto; padding: 16px; }
+  .hero { padding: 28px 4px 12px; }
+  .hero h1 { font-family: var(--serif); font-size: 30px; line-height: 1.22; margin: 0 0 12px; letter-spacing: -.5px; background: linear-gradient(135deg, var(--text) 0%, var(--accent-text) 100%); -webkit-background-clip: text; background-clip: text; -webkit-text-fill-color: transparent; }
+  .hero-meta { display: flex; flex-wrap: wrap; gap: 8px; font-size: 13px; color: var(--text-mute); }
+  .hero-meta span { background: var(--bg-soft); padding: 4px 10px; border-radius: 999px; border: 1px solid var(--border); }
+  .hero-deck { margin-top: 16px; padding: 14px 16px; border-left: 4px solid var(--accent); background: var(--accent-soft); border-radius: 8px; color: var(--text); font-size: 15px; }
+  .hero-deck p { margin: 6px 0; color: var(--text); }
+  section.chapter { margin: 24px 0; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: var(--radius-lg); overflow: hidden; box-shadow: var(--shadow); }
+  section.chapter > h2 { font-family: var(--serif); font-size: 21px; margin: 0; padding: 16px 20px; cursor: pointer; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); user-select: none; background: var(--bg-elevated); transition: background-color .15s; min-height: 56px; }
+  section.chapter > h2:active { background: var(--bg-soft); }
+  section.chapter > h2 .num { font-family: var(--serif); font-style: italic; display: inline-flex; align-items: center; justify-content: center; min-width: 30px; height: 30px; padding: 0 8px; border-radius: 8px; background: var(--accent-soft); color: var(--accent-text); font-size: 14px; font-weight: 700; }
+  section.chapter > h2 .title-text { flex: 1; }
+  section.chapter > h2 .caret { transition: transform .25s; color: var(--text-mute); font-size: 14px; }
+  section.chapter.collapsed > h2 .caret { transform: rotate(-90deg); }
+  section.chapter.collapsed > h2 { border-bottom-color: transparent; }
+  .chapter-body { padding: 18px 20px 22px; max-height: 100000px; overflow: hidden; transition: max-height .35s ease, padding .25s; }
+  section.chapter.collapsed .chapter-body { max-height: 0; padding-top: 0; padding-bottom: 0; }
+  h3 { font-family: var(--serif); font-size: 18px; margin: 22px 0 10px; color: var(--text); padding-left: 10px; border-left: 3px solid var(--accent); }
+  h4 { font-size: 15px; margin: 16px 0 8px; color: var(--text-soft); }
+  p { margin: 8px 0 12px; color: var(--text-soft); }
+  strong { color: var(--text); }
+  ul, ol { margin: 8px 0 14px; padding-left: 22px; color: var(--text-soft); }
+  li { margin: 4px 0; }
+  .callout { margin: 14px 0; padding: 12px 14px; border-radius: 10px; border-left: 4px solid; font-size: 14.5px; line-height: 1.65; }
+  .callout.info { background: var(--info-soft); border-color: var(--info); }
+  .callout.good { background: var(--good-soft); border-color: var(--good); }
+  .callout.warn { background: var(--warn-soft); border-color: var(--warn); }
+  .callout.bad { background: var(--bad-soft); border-color: var(--bad); }
+  .callout.accent { background: var(--accent-soft); border-color: var(--accent); }
+  .callout.purple { background: var(--purple-soft); border-color: var(--purple); }
+  .callout p:first-child { margin-top: 0; }
+  .callout p:last-child { margin-bottom: 0; }
+  .callout h4 { margin-top: 0; }
+  .table-wrap { margin: 14px 0; overflow-x: auto; -webkit-overflow-scrolling: touch; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-elevated); }
+  table { width: 100%; border-collapse: separate; border-spacing: 0; font-size: 14px; min-width: 560px; }
+  thead th { position: sticky; top: 0; background: var(--bg-soft); color: var(--text); text-align: left; font-weight: 600; padding: 10px 12px; border-bottom: 1px solid var(--border-strong); white-space: nowrap; z-index: 1; }
+  tbody td { padding: 10px 12px; border-bottom: 1px solid var(--border); color: var(--text-soft); vertical-align: top; }
+  tbody tr:nth-child(even) td { background: var(--bg-stripe); }
+  tbody tr:last-child td { border-bottom: none; }
+  tbody tr.row-highlight td { background: var(--accent-soft) !important; color: var(--text); }
+  tbody tr { cursor: pointer; transition: background-color .15s; }
+  td.check { text-align: center; font-weight: 600; }
+  td.check.y { color: var(--good); }
+  td.check.n { color: var(--bad); }
+  td.check.p { color: var(--warn); }
+  .faq-item { border: 1px solid var(--border); border-radius: 12px; margin: 10px 0; overflow: hidden; background: var(--bg-elevated); }
+  .faq-q { padding: 14px 16px; font-weight: 600; cursor: pointer; display: flex; gap: 10px; align-items: flex-start; user-select: none; min-height: 50px; }
+  .faq-q .qmark { color: var(--accent-text); font-weight: 700; font-size: 16px; flex: 0 0 auto; font-family: var(--serif); }
+  .faq-q .qtext { flex: 1; font-size: 15px; line-height: 1.45; }
+  .faq-q .toggle { color: var(--text-mute); transition: transform .25s; font-size: 14px; }
+  .faq-item.open .faq-q .toggle { transform: rotate(45deg); }
+  .faq-a { padding: 0 16px; max-height: 0; overflow: hidden; color: var(--text-soft); font-size: 14.5px; line-height: 1.65; transition: max-height .3s, padding .25s; }
+  .faq-item.open .faq-a { max-height: 4000px; padding: 0 16px 14px 16px; border-top: 1px solid var(--border); padding-top: 12px; }
+  .back-to-top { position: fixed; bottom: 20px; right: 20px; width: 48px; height: 48px; border-radius: 50%; background: var(--accent); color: white; display: none; align-items: center; justify-content: center; font-size: 22px; cursor: pointer; box-shadow: var(--shadow-lg); z-index: 40; border: none; }
+  .back-to-top.show { display: flex; }
+  .back-to-top:active { transform: scale(.94); }
+  .back-fab { position: fixed; right: 20px; bottom: 78px; z-index: 45; display: inline-flex; align-items: center; gap: 6px; background: var(--bg-elevated); color: var(--accent-text); border: 1px solid var(--accent); border-radius: 24px; padding: 9px 16px; font-size: 13.5px; text-decoration: none; font-weight: 700; box-shadow: var(--shadow-lg); }
+  .back-fab:hover { background: var(--accent); color: #fff; transform: translateY(-2px); }
+  footer { text-align: center; padding: 24px 16px; color: var(--text-mute); font-size: 13px; border-top: 1px solid var(--border); margin-top: 32px; }
+  code { background: var(--code-bg); padding: 2px 6px; border-radius: 4px; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; font-size: 13px; color: var(--text); }
+  pre { background: var(--code-bg); padding: 14px 16px; border-radius: 10px; overflow-x: auto; font-size: 13px; line-height: 1.6; border: 1px solid var(--border); margin: 12px 0; font-family: ui-monospace, SFMono-Regular, "SF Mono", Menlo, monospace; }
+  pre code { background: none; padding: 0; }
+  blockquote { margin: 12px 0; padding: 10px 16px; border-left: 4px solid var(--text-mute); background: var(--bg-soft); border-radius: 6px; color: var(--text-soft); font-size: 14.5px; }
+  .pill { display: inline-block; padding: 3px 9px; font-size: 11px; font-weight: 600; border-radius: 999px; background: var(--bg-elevated); border: 1px solid var(--border); color: var(--text-soft); white-space: nowrap; }
+  .pill.good { background: var(--good-soft); color: var(--good); border-color: var(--good); }
+  .pill.warn { background: var(--warn-soft); color: var(--warn); border-color: var(--warn); }
+  .pill.bad { background: var(--bad-soft); color: var(--bad); border-color: var(--bad); }
+  .pill.info { background: var(--info-soft); color: var(--info); border-color: var(--info); }
+  .pill.accent { background: var(--accent-soft); color: var(--accent-text); border-color: var(--accent); }
+  .pill.purple { background: var(--purple-soft); color: var(--purple); border-color: var(--purple); }
+  .metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+  .metric { padding: 12px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 12px; }
+  .metric .v { font-family: var(--serif); font-style: italic; font-size: 22px; font-weight: 700; color: var(--accent-text); }
+  .metric .l { font-size: 12px; color: var(--text-mute); margin-top: 2px; }
+  .tree { margin: 16px 0; padding: 12px; border: 1px solid var(--border); border-radius: 14px; background: var(--bg-soft); }
+  .tree .node { padding: 10px 14px; background: var(--bg-elevated); border: 1px solid var(--border); border-radius: 10px; margin: 6px 0; }
+  .tree .node.q { border-color: var(--accent); background: var(--accent-soft); color: var(--text); font-weight: 600; }
+  .tree .lbl { display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11.5px; font-weight: 700; margin-right: 8px; }
+  .tree .lbl.y { background: var(--good-soft); color: var(--good); }
+  .tree .lbl.n { background: var(--bad-soft); color: var(--bad); }
+  .tree .lbl.m { background: var(--warn-soft); color: var(--warn); }
+  .tree .step-arrow { text-align: center; color: var(--text-mute); margin: 2px 0; font-size: 18px; }
+  .step { margin: 14px 0; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: var(--bg-elevated); }
+  .step-head { padding: 10px 14px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--border); background: var(--bg-soft); font-family: var(--serif); font-weight: 700; font-size: 15.5px; color: var(--text); }
+  .step-head .sn { display: inline-flex; align-items: center; justify-content: center; min-width: 26px; height: 26px; border-radius: 7px; background: var(--accent); color: #fff; font-size: 13px; font-weight: 700; flex: 0 0 auto; }
+  .step-body { padding: 10px 14px 14px; font-size: 14.5px; }
+  .check-box { margin: 12px 0; padding: 10px 14px; border-radius: 10px; background: var(--good-soft); border-left: 4px solid var(--good); font-size: 14px; }
+  .trap-box { margin: 12px 0; padding: 10px 14px; border-radius: 10px; background: var(--bad-soft); border-left: 4px solid var(--bad); font-size: 14px; }
+  sup.cite { cursor: help; position: relative; border-bottom: 1px dotted currentColor; padding: 0 1px; color: var(--accent-text); font-weight: 600; }
+  sup.cite:hover { background: rgba(191,93,56,0.18); border-radius: 3px; }
+  .cite-popover { position: absolute; z-index: 9999; background: var(--bg-elevated); color: var(--text); border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; max-width: 380px; min-width: 220px; box-shadow: 0 10px 30px rgba(70,55,35,0.25); font-size: 13px; line-height: 1.55; pointer-events: auto; }
+  .cite-popover a { color: var(--accent-text); text-decoration: underline; word-break: break-all; }
+  .cite-popover ul, .cite-popover ol { margin: 4px 0 0; padding-left: 18px; }
+  .cite-popover ::before { content: none !important; }
+  .conf { display:inline-block; font-size:11px; font-weight:700; padding:1px 7px; border-radius:999px; margin-left:4px; vertical-align:middle; }
+  .conf.g { background: var(--good-soft); color: var(--good); }
+  .conf.y { background: var(--warn-soft); color: var(--warn); }
+  .conf.r { background: var(--bad-soft); color: var(--bad); }
+  .ref-list { list-style: none; padding: 0; counter-reset: ref; }
+  .ref-list li { counter-increment: ref; padding: 8px 10px 8px 36px; position: relative; border-bottom: 1px dashed var(--border); font-size: 13.5px; color: var(--text-soft); line-height: 1.5; }
+  .ref-list li::before { content: "[" counter(ref) "]"; position: absolute; left: 4px; top: 8px; font-weight: 700; color: var(--accent-text); font-family: ui-monospace, monospace; font-size: 12.5px; }
+  .ref-list li a { color: var(--accent-text); text-decoration: none; word-break: break-all; }
+  .ref-list li a:hover { text-decoration: underline; }
+  .ref-list li .ref-meta { color: var(--text-mute); font-size: 12px; margin-left: 4px; }
+  nav.anchor-nav { position: fixed; top: 100px; left: 0; width: 220px; height: calc(100vh - 100px); overflow-y: auto; overflow-x: hidden; background: var(--bg-soft); border-right: 1px solid var(--border); z-index: 60; padding: 16px 0 40px; transition: transform .28s ease; white-space: normal; }
+  nav.anchor-nav::-webkit-scrollbar { width: 6px; }
+  nav.anchor-nav::-webkit-scrollbar-thumb { background: var(--border-strong); border-radius: 3px; }
+  .nav-title { padding: 4px 20px 12px; font-size: 13px; font-weight: 700; color: var(--text-mute); }
+  .anchor-list { display: flex; flex-direction: column; gap: 2px; padding: 0 10px; }
+  .anchor-list a { display: block; min-height: 38px; padding: 9px 12px; border-radius: 8px; font-size: 13px; line-height: 1.35; color: var(--text-soft); text-decoration: none; border-left: 3px solid transparent; }
+  .anchor-list a.active { color: var(--accent-text); background: var(--accent-soft); border-left-color: var(--accent); font-weight: 600; }
+  .nav-toggle { position: fixed; left: 16px; bottom: 24px; width: 52px; height: 52px; border-radius: 999px; background: var(--accent); color: #fff; border: none; font-size: 22px; z-index: 70; box-shadow: var(--shadow-lg); cursor: pointer; align-items: center; justify-content: center; display: none; }
+  .nav-overlay { position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 55; opacity: 0; pointer-events: none; transition: opacity .28s; }
+  @media (max-width: 480px) {
+    .hero h1 { font-size: 23px; }
+    section.chapter > h2 { font-size: 18px; padding: 14px 14px; }
+    .chapter-body { padding: 14px 14px 18px; }
+    h3 { font-size: 16px; }
+  }
+  @media (max-width: 1040px) {
+    nav.anchor-nav { top: 0; height: 100vh; transform: translateX(-100%); box-shadow: var(--shadow-lg); width: 260px; max-width: 82vw; }
+    nav.anchor-nav.open { transform: translateX(0); }
+    .nav-overlay.show { opacity: 1; pointer-events: auto; }
+    .nav-toggle { display: flex; }
+  }
+  @media print {
+    @page { margin: 14mm 12mm; }
+    html, body { background: #fff !important; }
+    body { -webkit-print-color-adjust: exact; print-color-adjust: exact; padding: 0 !important; font-size: 11pt; line-height: 1.55; }
+    body::before { display: none !important; }
+    header.topbar, #progress, .back-to-top, .back-fab, nav.anchor-nav, .nav-toggle, .nav-overlay, #pdfBtn { display: none !important; }
+    main { margin: 0 !important; max-width: 100% !important; padding: 0 !important; }
+    .hero h1, h1 { -webkit-text-fill-color: #1a1d23 !important; color: #1a1d23 !important; background: none !important; }
+    section.chapter { box-shadow: none !important; border: 1px solid #d9dde5 !important; margin: 14px 0 !important; }
+    section.chapter > h2 { cursor: default; position: static; }
+    section.chapter.collapsed .chapter-body, .chapter-body { max-height: none !important; overflow: visible !important; padding: 14px 18px 18px !important; }
+    .caret { display: none !important; }
+    .faq-a { max-height: none !important; overflow: visible !important; padding: 0 16px 12px 16px !important; border-top: 1px solid #e3e6ec; }
+    .faq-q .toggle { display: none !important; }
+    .callout, .step, .metric-grid, .tree, .faq-item, table { break-inside: avoid; }
+    h2, h3, h4 { break-after: avoid; }
+    .table-wrap { overflow: visible !important; border: none !important; }
+    table { min-width: 0 !important; font-size: 9pt; }
+    .cite-popover { display: none !important; }
+    sup.cite { border-bottom: none !important; color: var(--accent-text) !important; }
+  }
+  @media (min-width: 1041px) { main { margin-left: 220px; } }
+</style>
+</head>
+<body data-theme="light">
+
+<div id="progress"></div>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="icon-btn" href="./index.html" title="返回研究总目录" aria-label="返回研究总目录" style="text-decoration:none">←</a>
+    <span class="brand">无忌 · Deep Research<span class="tag">L2</span></span>
+    <span class="topbar-spacer"></span>
+    <button class="icon-btn" id="pdfBtn" onclick="window.print()" aria-label="下载 PDF" title="下载 PDF（打印 → 存储为 PDF，已优化排版）">⬇</button>
+    <button class="icon-btn" id="themeToggle" aria-label="切换主题" title="明暗切换">🌙</button>
+  </div>
+</header>
+
+<button class="nav-toggle" id="navToggle" aria-label="章节目录">☰</button>
+<div class="nav-overlay" id="navOverlay"></div>
+<nav class="anchor-nav">
+  <div class="nav-title">📖 目录</div>
+  <div class="anchor-list" id="anchorList">
+    <a href="#ch1" data-target="ch1">01 01 用户为什么上传</a>
+    <a href="#ch2" data-target="ch2">02 02 商业模式</a>
+    <a href="#ch3" data-target="ch3">03 03 公共资源库</a>
+    <a href="#ch4" data-target="ch4">04 04 发展历史</a>
+    <a href="#ch5" data-target="ch5">05 05 用户画像</a>
+    <a href="#ch6" data-target="ch6">06 06 竞品对标</a>
+    <a href="#ch7" data-target="ch7">07 07 半米路线建议</a>
+    <a href="#faq" data-target="faq">08 FAQ 常见问题</a>
+    <a href="#refs" data-target="refs">09 References</a>
+  </div>
+</nav>
+
+<main><div class="hero">
+  <h1>BookFusion 云端书库竞品研究</h1>
+  <div class="hero-meta">
+    <span>📅 2026-09-16</span>
+    <span>🔍 65+ 来源</span>
+    <span>📊 5 维度调研</span>
+    <span>🎯 半米云端书库方向决策</span>
+  </div>
+  <div class="hero-deck">
+    <p><strong>BookFusion 是一家牙买加裔创业公司打造的云端电子书管理平台，定位填补「Calibre 本地自托管」与「Kindle/Apple Books 厂商锁定」之间的空白——以 Freemium 订阅模式（$2-10/月）提供跨设备同步、格式中立存储、知识工作流集成（Obsidian/Notion）。</strong></p>
+    <p>8 人团队运营、7.5 万下载量级、小众精品路线；用户画像为 Calibre 重度用户、学术研究者、脱 Kindle 生态派。核心商业模式：B2C 订阅（主力）+ B2B 教育机构定制 + 出版平台抽成（≤15%）。公共资源库（1,560 本）来自教育部门/国际组织授权，平台本身不卖书、只做分发。</p>
+    <p><strong>对半米启示</strong>：BookFusion 证明云端书库有付费意愿（尤其知识工作者），但泛用市场已被巨头和开源压制——半米机会在垂直场景差异化（K12 学习 + 行为数据 + 内容生态），技术栈建议本地优先混合架构（离线可用 + 云端增强），商业模式走 B2B2C（学校采购 + 家长付费增值）。</p>
+  </div>
+</div>
+
+<div class="callout accent">
+  <h3>三条核心发现</h3>
+  <ol>
+    <li><strong>市场空白已收窄但垂直场景仍有机会</strong>：BookFusion 填补的「自托管与厂商锁定之间」空白正在被 Calibre Web、KOReader 云同步、Kindle Cloud Reader 改进等蚕食；但垂直场景（教育/学术/企业）因特定工作流需求（如标注协作、内容分发、阅读数据追踪）仍有付费意愿，2B 定制合同是真实增长点。</li>
+    <li><strong>云端书库不是「把书扔云上」而是工作流枢纽</strong>：BookFusion 真正被用户认可的不是存储（Dropbox 就能干），而是跨设备同步阅读进度+高亮、自动分类（Smart Shelves）、导出到 Obsidian/Notion、Calibre 桥接——**云端书库的竞争力在「围绕书的知识管理工作流」，不在「云存储」本身**。</li>
+    <li><strong>Freemium 订阅模式成立但天花板明显</strong>：$2-10/月订阅在知识工作者/学术用户中有付费意愿（免费版 10 本书太紧），但用户规模卡在数千到万级（8 人团队 11 年只到 75k 下载）——泛用市场被巨头（Kindle/Apple Books）和免费开源（Calibre）两端挤压，增长靠 B2B 教育机构突围。</li>
+  </ol>
+</div>
+
+<section class="chapter" id="ch1" data-nav="01 用户为什么上传">
+  <h2><span class="num">01</span><span class="title-text">为什么用户要上传电子书到 BookFusion？</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+
+    <div class="callout">
+      <h3>三大核心动机</h3>
+      <p>用户上传电子书到 BookFusion 的核心原因并非单纯「云存储」，而是<strong>跨设备同步体验 + 永久保存保障 + 统一管理痛点</strong><sup class="cite" data-refid="1">[1]</sup>。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>动机 1：解决跨设备不一致地狱</h4>
+      <p>Kindle 存储限制导致「手机里的书和平板不一样」、Apple Books 只能在苹果设备用、KyBook 和 Marvin 无法跨 iOS/Android。典型用户从 <strong>5 个平台</strong>（Kindle、Apple Books、KyBook、Marvin、本地文件夹）完全迁移到 BookFusion<sup class="cite" data-refid="2">[2]</sup>，核心诉求：<strong>所有设备看到同一个书库、阅读位置和高亮实时同步</strong><sup class="cite" data-refid="3">[3]</sup>。</p>
+      <p>BookFusion 提供<strong>手动和自动两种同步模式</strong>，覆盖 iOS、Android、Web、KOReader（电子墨水屏设备如 Kobo、Kindle、Boox）<sup class="cite" data-refid="4">[4]</sup>。同步内容包括阅读位置、高亮、书签、笔记——<strong>不只是书本身，而是「围绕书的所有状态」</strong>。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>动机 2：数据安全与永久访问保障</h4>
+      <p>厂商锁定带来的「丢书恐惧」：Kindle 下架书会消失、Marvin <strong>5 年未更新</strong>随时可能停运、本地硬盘损坏血本无归<sup class="cite" data-refid="2">[2]</sup>。用户评价核心词：<strong>"不用再担心失去电子书"</strong><sup class="cite" data-refid="1">[1]</sup>。</p>
+      <p>BookFusion 作为中立第三方云存储，承诺<strong>格式中立</strong>（支持 30+ 格式<sup class="cite" data-refid="5">[5]</sup>）、用户完全拥有文件（可随时导出）、服务条款明确「用户保留所有权利」<sup class="cite" data-refid="6">[6]</sup>。相比厂商生态（Kindle DRM / Apple Books 加密），BookFusion 让用户感知「这是我的书，不是租的」。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>动机 3：统一入口与格式无关</h4>
+      <p>创始人 Dwayne Campbell 学生时代痛点：<strong>「不同格式需要不同软件，不断在多个应用间切换」</strong><sup class="cite" data-refid="7">[7]</sup>。BookFusion 核心价值主张：<strong>"Keep your favorite eBooks in one place, accessible from any device"</strong><sup class="cite" data-refid="1">[1]</sup>——一个入口管理 EPUB、MOBI、PDF、CBR/CBZ（漫画）、AZW、DOC 等 10+ 格式<sup class="cite" data-refid="5">[5]</sup>。</p>
+      <p>进阶用户通过 <strong>Calibre 插件</strong>实现「Calibre 管元数据+转格式，BookFusion 云端阅读」工作流：在 Calibre 里整理好标签/系列/封面，一键同步到 BookFusion，所有设备立刻可读<sup class="cite" data-refid="8">[8]</sup>。</p>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="v">30+</div>
+        <div class="l">支持格式数（含 Calibre 同步）</div>
+      </div>
+      <div class="metric">
+        <div class="v">双向</div>
+        <div class="l">阅读位置+高亮同步</div>
+      </div>
+      <div class="metric">
+        <div class="v">5→1</div>
+        <div class="l">典型用户迁移前平台数 → 迁移后</div>
+      </div>
+    </div>
+
+    <div class="callout info">
+      <h4>知识工作流集成是高阶卖点</h4>
+      <p>学术用户和知识工作者的核心诉求不只是「读书」，而是<strong>「从书里提取知识到个人知识库」</strong>。BookFusion 提供：</p>
+      <ul>
+        <li><strong>Obsidian/Notion 插件</strong>：自动同步高亮、笔记、书籍元数据到个人知识库；支持 Liquid 模板语言自定义导出格式<sup class="cite" data-refid="9">[9]</sup></li>
+        <li><strong>PDF 区域/图片高亮</strong>：标注学术论文的表格、图表（文本高亮做不到）<sup class="cite" data-refid="10">[10]</sup></li>
+        <li><strong>按标签和颜色过滤高亮</strong>（2025 年新增）：研究人员可按主题、格式快速定位标注<sup class="cite" data-refid="11">[11]</sup></li>
+      </ul>
+      <p>用户评价：<strong>"BookFusion 是我阅读工作流的枢纽，而不只是云盘"</strong><sup class="cite" data-refid="2">[2]</sup>。</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="chapter" id="ch2" data-nav="02 商业模式">
+  <h2><span class="num">02</span><span class="title-text">商业模式与收入结构</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+
+    <h3>Freemium 四档订阅（主力收入）</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>档位</th>
+            <th>价格（月付/年付）</th>
+            <th>存储</th>
+            <th>单文件上限</th>
+            <th>设备数</th>
+            <th>核心解锁功能</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>Free</strong></td>
+            <td>$0</td>
+            <td>5GB（10 本书上限）</td>
+            <td>15MB</td>
+            <td>3 台</td>
+            <td>达上限后每月限上传 2 本<sup class="cite" data-refid="12">[12]</sup></td>
+          </tr>
+          <tr>
+            <td><strong>Casual</strong></td>
+            <td>$2.99/月 <br> $1.99/月（年付）</td>
+            <td>20GB</td>
+            <td>100MB</td>
+            <td>无限</td>
+            <td>无限虚拟书架、元数据编辑、Calibre 导入、发送至 Kindle</td>
+          </tr>
+          <tr>
+            <td><strong>Advanced</strong></td>
+            <td>$7.99/月 <br> $4.99/月（年付）</td>
+            <td>100GB</td>
+            <td>1GB</td>
+            <td>无限</td>
+            <td>+ 家庭计划（邀请成员免费共享订阅）</td>
+          </tr>
+          <tr>
+            <td><strong>Power</strong></td>
+            <td>$14.99/月 <br> $9.99/月（年付）</td>
+            <td>100GB+</td>
+            <td>4GB</td>
+            <td>无限</td>
+            <td>+ TTS 无限流式播放、优先功能请求、邮件支持<sup class="cite" data-refid="13">[13]</sup></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <p><strong>年付省 20%</strong>；早期订阅者享<strong>终身折扣</strong><sup class="cite" data-refid="13">[13]</sup>。2022 年 8 月将免费版从 25 本降至 10 本，官方理由：<strong>"随增长基础设施成本越来越高"</strong><sup class="cite" data-refid="14">[14]</sup>——小公司云成本压力倒逼 Freemium 收紧。</p>
+
+    <h3>三管收入结构</h3>
+
+    <div class="callout">
+      <h4>收入来源 1：B2C 订阅（主力）</h4>
+      <p>个人用户订阅 $2-15/月<sup class="cite" data-refid="13">[13]</sup>。<span class="conf r">🔴</span> 用户规模估算 <strong>数千到万级</strong>（iOS 504 评分 + Android 470 评分 ≈ 1000 活跃评价用户，75k+ 总下载量<sup class="cite" data-refid="15">[15]</sup>），假设付费转化率 5-10%，月度订阅 ARR 估算 <strong>数万至十几万美元量级</strong>（⚠️ 未公开官方数据）。</p>
+    </div>
+
+    <div class="callout">
+      <h4>收入来源 2：B2B 定制合同（增长点）</h4>
+      <p>面向组织/学校/NGO 提供<strong>托管数字图书馆</strong>，走「联系销售」定制报价模式<sup class="cite" data-refid="16">[16]</sup>——无固定价格表，强调「减成本、增参与度」。已签客户包括：</p>
+      <ul>
+        <li>牙买加教育部（70 本教材数字化）<sup class="cite" data-refid="17">[17]</sup></li>
+        <li>Collins/Oxford 加勒比海学校合作<sup class="cite" data-refid="18">[18]</sup></li>
+        <li>圭亚那教育部（156 本书）<sup class="cite" data-refid="19">[19]</sup></li>
+      </ul>
+      <p><span class="conf y">🟡</span> 单个合同价格未公开，但 2017 年牙买加媒体报道称 BookFusion <strong>"adds new clients"</strong>——B2B 是真实营收增长点，尤其加勒比海教育市场（本土公司优势）<sup class="cite" data-refid="20">[20]</sup>。</p>
+    </div>
+
+    <div class="callout">
+      <h4>收入来源 3：出版平台抽成（补充）</h4>
+      <p>作者/出版商可在 BookFusion 上架书，保留<strong>最高 85% 版税</strong>、控制定价/折扣/区域价格<sup class="cite" data-refid="21">[21]</sup>——BookFusion 抽成 <strong>≤15%</strong>（反推）。电子书商店价格从 $2.99 到 $44.99 不等<sup class="cite" data-refid="22">[22]</sup>。</p>
+      <p><span class="conf y">🟡</span> 交易量未公开，官网有 Store（70,000+ 免费书<sup class="cite" data-refid="23">[23]</sup>），但付费书销量未披露——推测为补充收入，非主力。</p>
+    </div>
+
+    <div class="callout info">
+      <h4>联盟营销（获客渠道，非直接收入）</h4>
+      <p>推荐 Power 订阅赚取 <strong>10-20% 佣金</strong>，无上限；联盟客拿 25% 折扣码，达里程碑有奖金<sup class="cite" data-refid="24">[24]</sup>。目标人群：PKM/生产力博主、教育工作者、学生领袖——<strong>变动成本获客，用佣金换订阅</strong>。</p>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="v">$2-15</div>
+        <div class="l">B2C 月订阅价格区间</div>
+      </div>
+      <div class="metric">
+        <div class="v">≤15%</div>
+        <div class="l">出版平台抽成比例</div>
+      </div>
+      <div class="metric">
+        <div class="v">10-20%</div>
+        <div class="l">联盟营销佣金比例</div>
+      </div>
+    </div>
+
+    <p><strong>无广告收入</strong>迹象（搜索未找到任何广告相关信息）<sup class="cite" data-refid="25">[25]</sup>。</p>
+
+  </div>
+</section>
+
+<section class="chapter" id="ch3" data-nav="03 公共资源库">
+  <h2><span class="num">03</span><span class="title-text">公共资源库逻辑：不卖书，只做分发</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+
+    <h3>为什么有那么多公共图书馆资源？</h3>
+
+    <div class="callout">
+      <p>BookFusion 托管 <strong>15 个公共图书馆，共约 1,560 本书</strong><sup class="cite" data-refid="19">[19]</sup>，主要来自三类来源：</p>
+      <ol>
+        <li><strong>公共领域授权</strong>：770 本来自 Standard eBooks（公共领域经典文学，编辑长 Alex Cabal 授权："grab any content you wanted"）<sup class="cite" data-refid="26">[26]</sup></li>
+        <li><strong>政府教育部门</strong>：牙买加教育部 100 本、圭亚那教育部 156 本<sup class="cite" data-refid="19">[19]</sup></li>
+        <li><strong>国际组织</strong>：NASA 56 本、UNICEF 等<sup class="cite" data-refid="19">[19]</sup></li>
+      </ol>
+    </div>
+
+    <p><strong>BookFusion 不是出版商，是分发平台</strong>。平台有三种内容：</p>
+    <ul>
+      <li><strong>用户上传内容</strong>（主体）：版权责任完全由用户承担，用户「solely liable」；BookFusion 采用 DMCA 通知删除机制<sup class="cite" data-refid="27">[27]</sup>，服务条款明确「无义务监控内容」<sup class="cite" data-refid="28">[28]</sup></li>
+      <li><strong>公共图书馆</strong>（免费资源）：教育部门/国际组织授权或公共领域内容，BookFusion 托管但不拥有版权</li>
+      <li><strong>Store 付费书</strong>（商业内容）：出版商保留定价和版权控制<sup class="cite" data-refid="22">[22]</sup>，BookFusion 抽成 ≤15%</li>
+    </ul>
+
+    <div class="callout warn">
+      <h4>版权风险转嫁给用户</h4>
+      <p>服务条款：<strong>"burden of determining that any material is not protected by copyright rests with User...User shall be solely liable for any damage"</strong><sup class="cite" data-refid="27">[27]</sup>——BookFusion 不审核用户上传内容，只在收到 DMCA 通知后删除。</p>
+      <p>总部位于牙买加 Mandeville<sup class="cite" data-refid="29">[29]</sup>，但采用美国 DMCA 版权政策<sup class="cite" data-refid="27">[27]</sup>——法律上的「安全港」策略。</p>
+    </div>
+
+    <h3>是在卖电子书吗？</h3>
+
+    <div class="callout">
+      <p><strong>平台有 Store，但不是核心商业模式</strong>。Store 显示各类付费电子书（学术教材、小说等），价格 $2.99-$44.99<sup class="cite" data-refid="22">[22]</sup>，但：</p>
+      <ul>
+        <li>出版商保留完全控制权（定价/折扣/区域价格/版权）<sup class="cite" data-refid="21">[21]</sup></li>
+        <li>BookFusion 只做分发平台，抽成 ≤15%<sup class="cite" data-refid="21">[21]</sup></li>
+        <li>杂志内容来自独立出版商（Champion Publishing、Khravesports 等）<sup class="cite" data-refid="30">[30]</sup></li>
+      </ul>
+      <p><span class="conf y">🟡</span> 交易量未公开——官方称「over 70,000 free eBooks」<sup class="cite" data-refid="23">[23]</sup>，但付费书 GMV 未披露。推测为<strong>补充收入，订阅才是主力</strong>（定价页面主推订阅，Store 入口不明显）。</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="chapter" id="ch4" data-nav="04 发展历史">
+  <h2><span class="num">04</span><span class="title-text">发展历史与核心逻辑</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+
+    <h3>创始背景：牙买加裔夫妻团队填补市场空白</h3>
+
+    <div class="callout">
+      <p>联合创始人 <strong>Dwayne Campbell</strong>（CEO，Howard Univ 化工学士 → Columbia Univ 计算机硕士 → Goldman Sachs 应用开发）+ <strong>Kellye-Rae Campbell</strong>（COO，律师，负责法务）+ Sergey Nartimov（CTO）<sup class="cite" data-refid="31">[31]</sup>。Dwayne 与 Kellye-Rae 为高中同学后结婚。</p>
+      <p>起源痛点：Dwayne 学生时代<strong>「不同格式需要不同软件，不断在多个应用间切换」</strong><sup class="cite" data-refid="7">[7]</sup>——这是 BookFusion 核心逻辑的起点。</p>
+    </div>
+
+    <h3>发展时间线</h3>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">2009-2011</span> 早期失败尝试</div>
+      <div class="step-body">经营电子零售店 Akira Teknlogies，因选址失败关闭<sup class="cite" data-refid="32">[32]</sup>——创始人有过创业失败经历。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">2014.01</span> BookFusion 构思</div>
+      <div class="step-body">Dwayne 开始设计云端书库产品。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">2015.03</span> 正式成立</div>
+      <div class="step-body">BookFusion Limited 在加勒比注册<sup class="cite" data-refid="32">[32]</sup>。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">2015.10</span> 首个 B2B 客户</div>
+      <div class="step-body">与牙买加教育部签署 MOU<sup class="cite" data-refid="32">[32]</sup>——成立半年即拿下本土教育部门，证明 B2B 路线可行。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">2016.06</span> 种子轮融资</div>
+      <div class="step-body">Pre-Seed 轮，投资方 First Angels Jamaica 和 First Angels Caribbean，金额未公开<sup class="cite" data-refid="33">[33]</sup>。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">2017</span> 全球下载扩散</div>
+      <div class="step-body">牙买加媒体报道 BookFusion <strong>"adds new clients"</strong>，下载来自乌克兰、俄罗斯、德国、澳大利亚、英国、美国、加拿大<sup class="cite" data-refid="34">[34]</sup>——从加勒比走向全球散点用户。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">2022.08</span> 紧缩免费计划</div>
+      <div class="step-body">将免费版从 25 本降至 10 本，官方理由「基础设施成本压力」<sup class="cite" data-refid="14">[14]</sup>——小公司云成本倒逼 Freemium 收紧。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">2025-2026</span> 积极迭代</div>
+      <div class="step-body">推出 Smart Shelves（自动分类）、TTS（100+ 自然语音）、Article 支持（保存网页文章）、Windows 桌面端（教育机构 beta）<sup class="cite" data-refid="35">[35]</sup>。</div>
+    </div>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="v">11 年</div>
+        <div class="l">2015 成立至今</div>
+      </div>
+      <div class="metric">
+        <div class="v">8 人</div>
+        <div class="l">团队规模（2026 年中）</div>
+      </div>
+      <div class="metric">
+        <div class="v">75k+</div>
+        <div class="l">总下载量（估算）</div>
+      </div>
+    </div>
+
+    <h3>核心逻辑：填补自托管与厂商锁定之间空白</h3>
+
+    <div class="callout accent">
+      <p>BookFusion 定位 <strong>"格式中立的云端私人图书馆 + Calibre 桥接"</strong><sup class="cite" data-refid="7">[7]</sup>：</p>
+      <ul>
+        <li><strong>vs Calibre</strong>：Calibre 功能强大但只能桌面、无移动端；BookFusion 云端 + 原生移动应用<sup class="cite" data-refid="36">[36]</sup></li>
+        <li><strong>vs Kindle/Apple Books</strong>：厂商锁定（Kindle DRM、Apple 只在苹果设备）；BookFusion 格式中立、用户完全拥有文件</li>
+        <li><strong>vs Scribd/Libby</strong>：Scribd 付费无限阅读但内容池固定、Libby 免费但需排队<sup class="cite" data-refid="37">[37]</sup>；BookFusion 用户自己带书来</li>
+      </ul>
+      <p><strong>桥接策略</strong>：通过 Calibre 插件（单向同步 Calibre → BookFusion<sup class="cite" data-refid="38">[38]</sup>），让 Calibre 重度用户「桌面管理 + 云端阅读」，既不放弃 Calibre 强大功能、又解决移动端痛点。</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="chapter" id="ch5" data-nav="05 用户画像">
+  <h2><span class="num">05</span><span class="title-text">用户主要用它来干什么？</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+
+    <h3>四大用户群体</h3>
+
+    <div class="callout good">
+      <h4>1. Calibre 重度用户（核心群体）</h4>
+      <p>用户评价高频词：<strong>"seamless integration with Calibre" "reliable syncing" "device-agnostic"</strong><sup class="cite" data-refid="39">[39]</sup>。工作流：</p>
+      <ol>
+        <li>在 Calibre 桌面整理元数据（标签/系列/封面/格式转换）</li>
+        <li>通过插件一键同步到 BookFusion</li>
+        <li>所有移动设备（手机/平板/墨水屏）阅读，阅读位置和高亮云端同步</li>
+        <li>高亮导出到 Obsidian/Notion 做笔记</li>
+      </ol>
+      <p>这个群体最看重<strong>「Calibre 功能深度 + 移动端便捷」两者兼得</strong>。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>2. 学术研究者与知识工作者</h4>
+      <p>使用场景：</p>
+      <ul>
+        <li>PDF 学术论文阅读：区域/图片高亮（标注表格、图表）<sup class="cite" data-refid="10">[10]</sup></li>
+        <li>按标签和颜色过滤高亮：研究人员按主题快速定位标注<sup class="cite" data-refid="11">[11]</sup></li>
+        <li>Smart Shelves 自动分类：<strong>"研究人员按主题和格式追踪来源，学生分离当前阅读和参考资料"</strong><sup class="cite" data-refid="40">[40]</sup></li>
+        <li>导出到 Obsidian/Notion：文献管理工作流<sup class="cite" data-refid="9">[9]</sup></li>
+      </ul>
+      <p>这个群体付费意愿最高（Power 版 $9.99/月<sup class="cite" data-refid="13">[13]</sup>），因为<strong>云端书库是知识管理工作流的枢纽</strong>。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>3. 脱 Kindle 生态派</h4>
+      <p>迁移原因：</p>
+      <ul>
+        <li><strong>Kindle 存储限制</strong>：教科书多了就同步不了，「手机和平板书库不一致」<sup class="cite" data-refid="2">[2]</sup></li>
+        <li><strong>Marvin 5 年未更新</strong>：担心随时停运<sup class="cite" data-refid="2">[2]</sup></li>
+        <li><strong>定制阅读体验</strong>：如自动滚动（<strong>"边阅读边织毛衣"</strong><sup class="cite" data-refid="41">[41]</sup>）——厂商应用做不到的个性化需求</li>
+      </ul>
+      <p>用户评价：<strong>"BookFusion 用户体验远超 Kindle"</strong><sup class="cite" data-refid="41">[41]</sup>。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>4. 教育机构（B2B 客户）</h4>
+      <p>使用场景：</p>
+      <ul>
+        <li>牙买加教育部：70 本教材数字化<sup class="cite" data-refid="17">[17]</sup></li>
+        <li>Collins/Oxford 加勒比海学校：通过邮件或优惠码向学生分发电子书、有声书<sup class="cite" data-refid="42">[42]</sup></li>
+        <li>学生 24/7 访问数字内容<sup class="cite" data-refid="42">[42]</sup></li>
+      </ul>
+      <p>B2B 客户看重<strong>内容分发能力 + 学生阅读数据追踪</strong>（虽然 BookFusion 未公开具体数据分析功能）。</p>
+    </div>
+
+    <h3>用户规模与社交媒体存在感</h3>
+
+    <div class="metric-grid">
+      <div class="metric">
+        <div class="v">75k+</div>
+        <div class="l">总下载量（估算）</div>
+      </div>
+      <div class="metric">
+        <div class="v">4.7/5</div>
+        <div class="l">iOS 评分（504 评价）</div>
+      </div>
+      <div class="metric">
+        <div class="v">数千-万级</div>
+        <div class="l">活跃用户估算</div>
+      </div>
+    </div>
+
+    <p><span class="conf r">🔴</span> 用户规模估算依据：iOS 504 评分 + Android 470 评分 ≈ 1000 活跃评价用户，75k+ 总下载<sup class="cite" data-refid="15">[15]</sup>——<strong>小众精品定位，远小于主流电子书平台</strong>。</p>
+
+    <p>社交媒体存在感极弱：Twitter 686 粉丝（14 年账号）、Instagram 2722 粉丝<sup class="cite" data-refid="43">[43]</sup>——<strong>不靠社交媒体营销，靠产品口碑 + 联盟营销</strong>。</p>
+
+  </div>
+</section>
+
+<section class="chapter" id="ch6" data-nav="06 竞品对标">
+  <h2><span class="num">06</span><span class="title-text">有没有类似的网站？竞品对标分析</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+
+    <h3>三类竞品</h3>
+
+    <div class="callout">
+      <p>BookFusion 主要竞品分为三类<sup class="cite" data-refid="44">[44]</sup>：</p>
+      <ol>
+        <li><strong>开源自托管</strong>：Calibre/Calibre Web、Kavita、Komga、Ubooquity</li>
+        <li><strong>商业云订阅</strong>：Scribd（$9.99-11.99/月）、OverDrive/Libby（免费需图书馆卡）</li>
+        <li><strong>生态系统集成</strong>：Google Play Books、Apple Books、Amazon Kindle</li>
+      </ol>
+    </div>
+
+    <h3>核心竞品对比</h3>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>维度</th>
+            <th>BookFusion</th>
+            <th>Calibre/Calibre Web</th>
+            <th>Kindle/Apple Books</th>
+            <th>Scribd/Libby</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><strong>定位</strong></td>
+            <td>云端私人图书馆</td>
+            <td>本地自托管</td>
+            <td>厂商生态锁定</td>
+            <td>无限阅读订阅/图书馆借阅</td>
+          </tr>
+          <tr>
+            <td><strong>价格</strong></td>
+            <td>$0-10/月</td>
+            <td>完全免费开源</td>
+            <td>免费（买书另付）</td>
+            <td>$9.99/月 / 免费（需图书馆卡）</td>
+          </tr>
+          <tr>
+            <td><strong>跨设备同步</strong></td>
+            <td><span class="check y">✅</span> 云端自动</td>
+            <td><span class="check n">⛔</span> 仅桌面，无移动端<sup class="cite" data-refid="36">[36]</sup></td>
+            <td><span class="check y">✅</span> 生态内</td>
+            <td><span class="check y">✅</span></td>
+          </tr>
+          <tr>
+            <td><strong>格式中立</strong></td>
+            <td><span class="check y">✅</span> 30+ 格式</td>
+            <td><span class="check y">✅</span> 任意格式</td>
+            <td><span class="check n">⛔</span> 厂商格式</td>
+            <td><span class="check n">⛔</span> 平台内容池</td>
+          </tr>
+          <tr>
+            <td><strong>知识工作流</strong></td>
+            <td><span class="check y">✅</span> Obsidian/Notion</td>
+            <td><span class="check p">⚠️</span> 插件生态</td>
+            <td><span class="check n">⛔</span></td>
+            <td><span class="check n">⛔</span></td>
+          </tr>
+          <tr>
+            <td><strong>技术门槛</strong></td>
+            <td>低（云服务）</td>
+            <td>高（需自己搭服务器）</td>
+            <td>低</td>
+            <td>低</td>
+          </tr>
+          <tr>
+            <td><strong>用户拥有文件</strong></td>
+            <td><span class="check y">✅</span> 完全拥有</td>
+            <td><span class="check y">✅</span></td>
+            <td><span class="check n">⛔</span> DRM 加密</td>
+            <td><span class="check n">⛔</span> 订阅制</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h3>关键差异化点</h3>
+
+    <div class="callout accent">
+      <h4>vs Calibre：本地功能丰富 vs 云端移动便捷</h4>
+      <p>Calibre 完全免费开源、<strong>仅桌面运行、无移动端</strong>，功能包括元数据编辑、格式转换、与阅读器同步、自动化脚本<sup class="cite" data-refid="36">[36]</sup>。BookFusion 功能深度远低于 Calibre，但提供：</p>
+      <ul>
+        <li><strong>iOS/Android 原生应用</strong></li>
+        <li><strong>跨设备同步笔记和进度</strong></li>
+        <li><strong>Calibre 插件桥接</strong>（单向同步 Calibre → BookFusion<sup class="cite" data-refid="38">[38]</sup>）</li>
+      </ul>
+      <p><strong>核心权衡</strong>：Calibre 重度用户通过插件「两者兼得」——桌面用 Calibre 管理，移动端用 BookFusion 阅读。</p>
+    </div>
+
+    <div class="callout accent">
+      <h4>vs Kindle/Apple Books：格式中立 vs 厂商锁定</h4>
+      <p>Kindle DRM 锁定、Apple Books 只在苹果设备、Google Play Books 跨平台但内容池固定<sup class="cite" data-refid="45">[45]</sup>。BookFusion 卖点：</p>
+      <ul>
+        <li><strong>用户自己带书</strong>（不受平台内容池限制）</li>
+        <li><strong>格式中立</strong>（30+ 格式，包括 Kindle 不支持的 EPUB）</li>
+        <li><strong>完全拥有文件</strong>（无 DRM，可随时导出）</li>
+      </ul>
+    </div>
+
+    <div class="callout accent">
+      <h4>vs Scribd/Libby：私人图书馆 vs 无限阅读订阅</h4>
+      <p>Scribd $9.99-11.99/月无限访问 100 万+ 书籍/有声书；Libby 完全免费需图书馆卡、需排队<sup class="cite" data-refid="37">[37]</sup>。BookFusion 区别：</p>
+      <ul>
+        <li><strong>用户上传自己的书</strong>（不是平台内容池）</li>
+        <li><strong>永久保存</strong>（不受订阅取消影响）</li>
+        <li><strong>知识工作流集成</strong>（Obsidian/Notion）</li>
+      </ul>
+    </div>
+
+    <h3>自托管竞品细分</h3>
+
+    <div class="callout">
+      <p>自托管领域内部分工<sup class="cite" data-refid="46">[46]</sup>：</p>
+      <ul>
+        <li><strong>Calibre-Web</strong>：主攻传统电子书（EPUB、发送到 Kindle、与 Kobo 同步），处理能力约 20,000 文件上限</li>
+        <li><strong>Komga</strong>：专为 CBZ/CBR 漫画格式优化、集成 Tachiyomi</li>
+        <li><strong>Kavita</strong>：跨格式（电子书+漫画），可处理 50,000+ 文件</li>
+      </ul>
+      <p><strong>BookFusion 优势</strong>：云托管（无需自己搭服务器）+ 移动端原生应用（Calibre Web 仅 Web 界面）。</p>
+      <p><strong>BookFusion 劣势</strong>：功能深度远低于 Calibre、付费订阅（Calibre 完全免费）。</p>
+    </div>
+
+  </div>
+</section>
+
+<section class="chapter" id="ch7" data-nav="07 半米路线建议">
+  <h2><span class="num">07</span><span class="title-text">半米云端书库路线建议</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+
+    <div class="callout accent">
+      <h3>核心判断：值得做，但垂直场景差异化 + 本地优先架构</h3>
+      <p>BookFusion 证明<strong>云端书库有付费意愿</strong>（尤其知识工作者 $2-10/月），但泛用市场已被巨头（Kindle/Apple Books）和开源（Calibre）两端挤压——半米机会在<strong>垂直场景差异化</strong>（K12 学习 + 行为数据 + 内容生态）。</p>
+    </div>
+
+    <h3>五条具体建议</h3>
+
+    <div class="callout good">
+      <h4>1. 定位：K12 学习场景，不做泛用云盘</h4>
+      <p><strong>BookFusion 的教训</strong>：泛用云端书库市场天花板明显（8 人团队 11 年只到 75k 下载）。半米优势在<strong>垂直 K12 学习场景</strong>：</p>
+      <ul>
+        <li><strong>阅读 + 行为数据追踪</strong>：学生读了哪些章节、停留时长、重读次数——BookFusion 不做这个，半米可以（对标学校/家长的数据需求）</li>
+        <li><strong>内容生态</strong>：绘本/分级读物/教材，不是用户自己带的任意书——平台策展内容质量</li>
+        <li><strong>家庭共享 + 学校分发</strong>：BookFusion 的家庭计划和 B2B 教育机构是真实增长点，半米天然在这个场景</li>
+      </ul>
+    </div>
+
+    <div class="callout good">
+      <h4>2. 商业模式：B2B2C，学校采购 + 家长付费增值</h4>
+      <p><strong>BookFusion 的收入结构启示</strong>：</p>
+      <ul>
+        <li><strong>B2C 订阅</strong>（BookFusion 主力）：在半米场景下，家长付费意愿看<strong>内容质量 + 学习效果数据</strong>（不只是「云存储」）</li>
+        <li><strong>B2B 定制合同</strong>（BookFusion 增长点）：半米可走<strong>学校采购</strong>（班级/年级批量订阅），定价走定制报价（参考 BookFusion 无固定价格表模式）</li>
+        <li><strong>内容分成</strong>：BookFusion 出版平台抽 ≤15%，半米可与出版社/内容方合作（分级读物/绘本库），按阅读量/订阅分成</li>
+      </ul>
+      <p><strong>避开 BookFusion 的坑</strong>：不要只靠 B2C 订阅（天花板明显），一定要做 B2B 学校采购。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>3. 技术栈：本地优先混合架构，不做纯云</h4>
+      <p><strong>BookFusion 的痛点</strong>：2022 年紧缩免费计划（25 本→10 本）因「基础设施成本压力」<sup class="cite" data-refid="14">[14]</sup>——<strong>纯云架构成本高，尤其视频/音频内容</strong>。</p>
+      <p><strong>半米建议</strong>：<strong>本地优先混合架构</strong>（Local-First）</p>
+      <ul>
+        <li><strong>内容本地存储</strong>（设备上缓存绘本/视频），云端只做同步和备份——省云存储/带宽成本</li>
+        <li><strong>阅读数据云端同步</strong>（进度/高亮/行为数据）——这是轻量数据，成本可控</li>
+        <li><strong>离线可用</strong>（网络差时仍能读书）——K12 场景可能在地铁/乡村，离线能力是刚需</li>
+      </ul>
+      <p>技术栈参考：<strong>Replicache / ElectricSQL</strong>（本地数据库 + 云端同步）或 <strong>OPDS 标准</strong>（开放书籍分发协议，Calibre Web/Kavita 都支持<sup class="cite" data-refid="47">[47]</sup>）——避免厂商锁定。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>4. 核心差异化：学习行为数据 + AI 推荐，不只是「云盘」</h4>
+      <p><strong>BookFusion 的局限</strong>：只做存储和阅读，不做学习数据分析（没有「学生读了哪些章节、理解程度如何」的追踪）。</p>
+      <p><strong>半米机会</strong>：</p>
+      <ul>
+        <li><strong>阅读行为数据</strong>：停留时长、重读次数、词汇查询记录——生成「阅读报告」给家长/老师</li>
+        <li><strong>AI 推荐</strong>：基于阅读水平、兴趣标签推荐下一本书——BookFusion 没有这个（用户自己管理书库）</li>
+        <li><strong>互动学习</strong>：绘本配语音、问答、词汇卡片——BookFusion 只有 TTS 朗读<sup class="cite" data-refid="48">[48]</sup>，没有学习互动</li>
+      </ul>
+      <p>这是半米与 BookFusion 最大区别：<strong>BookFusion 是「云端书库」，半米是「学习操作系统」</strong>。</p>
+    </div>
+
+    <div class="callout good">
+      <h4>5. 需要避开的坑</h4>
+      <p><strong>坑 1：版权风险</strong></p>
+      <ul>
+        <li>BookFusion 把版权责任转嫁给用户（用户上传自己的书，平台不管<sup class="cite" data-refid="27">[27]</sup>）——半米做 K12 内容库，<strong>必须提前拿授权</strong>（与出版社/内容方签分成协议），不能让用户随便上传</li>
+      </ul>
+      <p><strong>坑 2：过度依赖云存储成本</strong></p>
+      <ul>
+        <li>BookFusion 8 人团队都扛不住云成本（2022 紧缩免费版）——半米一定要做<strong>本地优先架构</strong>，尤其视频内容（CDN + 缓存策略）</li>
+      </ul>
+      <p><strong>坑 3：泛用市场天花板</strong></p>
+      <ul>
+        <li>BookFusion 11 年只到 75k 下载——半米不要做「给所有人的云端书库」，<strong>死磕 K12 垂直场景</strong>（学校采购 + 家长付费）</li>
+      </ul>
+    </div>
+
+    <h3>可执行下一步</h3>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">第 1 步</span> MVP 验证：本地优先 + 阅读数据追踪</div>
+      <div class="step-body">先做一个<strong>最小可用版本</strong>：10-20 本精选绘本、本地存储、云端同步阅读进度+高亮、简单的「阅读报告」（读了几本、停留时长）。验证家长付费意愿（$2-5/月）。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">第 2 步</span> B2B 试点：找 1-2 所学校合作</div>
+      <div class="step-body">参考 BookFusion 2015 年成立半年即签牙买加教育部<sup class="cite" data-refid="32">[32]</sup>——半米也可以早期就做 B2B 试点（班级订阅、老师分配内容、学生阅读数据看板）。定价走定制报价。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">第 3 步</span> 内容生态：与出版社谈分成</div>
+      <div class="step-body">BookFusion 出版平台抽 ≤15%<sup class="cite" data-refid="21">[21]</sup>——半米可参考这个比例，与分级读物/绘本出版社谈「按阅读量分成」（或固定授权费 + 分成）。</div>
+    </div>
+
+    <div class="step">
+      <div class="step-head"><span class="sn">第 4 步</span> 技术栈选型：OPDS 标准 + 本地数据库</div>
+      <div class="step-body">研究 <strong>OPDS 协议</strong>（开放书籍分发标准<sup class="cite" data-refid="47">[47]</sup>）+ <strong>Replicache/ElectricSQL</strong>（本地优先同步）——技术选型优先「离线可用 + 云端增强」，不做纯云架构。</div>
+    </div>
+
+  </div>
+</section>
+
+<section class="chapter" id="faq" data-nav="FAQ 常见问题">
+  <h2><span class="num">08</span><span class="title-text">FAQ 常见问题</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">BookFusion 免费版 10 本书够用吗？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>不够。</strong>2022 年从 25 本降至 10 本后用户抱怨明显<sup class="cite" data-refid="14">[14]</sup>。典型用户书库 50-200 本（Calibre 重度用户甚至数千本），10 本只能当「试用」——达上限后每月限上传 2 本<sup class="cite" data-refid="12">[12]</sup>，逼付费意图明显。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">BookFusion 和 Kindle Cloud Reader 有什么区别？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>格式中立 vs 厂商锁定。</strong>Kindle Cloud Reader 不支持个人文档上传、不支持 Collections 管理、漫画无法调整字体<sup class="cite" data-refid="49">[49]</sup>；BookFusion 支持 30+ 格式<sup class="cite" data-refid="5">[5]</sup>、用户完全拥有文件、可随时导出。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">为什么不直接用 Google Drive / Dropbox 存书？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>云盘只是存储，BookFusion 是工作流枢纽。</strong>Google Drive 不能同步阅读进度和高亮、不能自动分类（Smart Shelves）、不能导出到 Obsidian/Notion、不能 Calibre 桥接<sup class="cite" data-refid="11">[11]</sup>——BookFusion 的价值在「围绕书的知识管理工作流」，不在「云存储」本身。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">Calibre 免费开源，为什么还要付费用 BookFusion？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>Calibre 只能桌面、无移动端。</strong>BookFusion 核心卖点是<strong>「Calibre 管理 + 移动端阅读」桥接</strong>：在 Calibre 整理元数据/转格式，通过插件同步到 BookFusion，所有移动设备（手机/平板/墨水屏）云端阅读<sup class="cite" data-refid="8">[8]</sup>。Calibre 重度用户评价：<strong>"seamless integration"</strong><sup class="cite" data-refid="39">[39]</sup>。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">BookFusion 卖书吗？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>平台有 Store，但不是核心业务。</strong>BookFusion 是分发平台（出版商保留定价和版权控制<sup class="cite" data-refid="22">[22]</sup>，平台抽成 ≤15%<sup class="cite" data-refid="21">[21]</sup>），主力收入是订阅<sup class="cite" data-refid="13">[13]</sup>。用户主要是<strong>自己带书来</strong>（上传 EPUB/PDF/MOBI 等），不是在平台买书。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">公共图书馆的书是免费的吗？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>是。</strong>15 个公共图书馆共 1,560 本书<sup class="cite" data-refid="19">[19]</sup>，来自教育部门/国际组织授权或公共领域（如 Standard eBooks 770 本<sup class="cite" data-refid="26">[26]</sup>）——BookFusion 免费用户也能读这些书。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">BookFusion 支持离线阅读吗？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>支持。</strong>移动端（iOS/Android）可下载书籍离线阅读；KOReader 插件也支持离线<sup class="cite" data-refid="4">[4]</sup>。但 Web 版需要在线。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">BookFusion 的 TTS 语音质量如何？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>2025-2026 主推功能，100+ 自然语音。</strong>提供低/中/高三档音质，支持 38+ 语言<sup class="cite" data-refid="48">[48]</sup>。Power 用户无限流式播放；Android 提供完全离线的 160+ 语音。官方称<strong>"自然人声替代机器人平板声音"</strong><sup class="cite" data-refid="48">[48]</sup>。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">BookFusion 和 Moon+ Reader 有什么区别？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>云端同步 vs 本地阅读。</strong>Moon+ Reader Pro 支持云同步（Dropbox/WebDAV<sup class="cite" data-refid="50">[50]</sup>），但核心是本地阅读器；BookFusion 核心是云端图书馆，移动端是云端的「阅读入口」。BookFusion 还有 Calibre 桥接、Obsidian/Notion 集成，Moon+ 没有。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">BookFusion 学校采购怎么定价？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>走「联系销售」定制报价。</strong>官网 B2B 页面无固定价格表<sup class="cite" data-refid="16">[16]</sup>，面向学校/NGO 提供托管数字图书馆，强调「减成本、增参与度」。已签客户包括牙买加教育部、圭亚那教育部<sup class="cite" data-refid="19">[19]</sup>。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">BookFusion 会倒闭吗？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>风险存在但短期可控。</strong>8 人团队运营 11 年<sup class="cite" data-refid="51">[51]</sup>，2016 年天使融资后无后续融资记录<sup class="cite" data-refid="33">[33]</sup>——推测自负盈亏（订阅 + B2B 合同覆盖成本）。但用户规模小（75k 下载<sup class="cite" data-refid="15">[15]</sup>），增长缓慢。<strong>建议用户定期导出书籍备份</strong>（BookFusion 支持导出）。
+      </div>
+    </div>
+
+    <div class="faq-item">
+      <div class="faq-q">
+        <span class="qmark">Q</span>
+        <span class="qtext">半米做云端书库有机会吗？</span>
+        <span class="toggle">+</span>
+      </div>
+      <div class="faq-a">
+        <strong>有，但必须垂直场景差异化。</strong>BookFusion 证明泛用云端书库市场天花板明显（11 年只到 75k 下载）——半米机会在<strong>K12 学习场景</strong>：阅读行为数据追踪 + AI 推荐 + 内容生态 + B2B 学校采购。<strong>不做「给所有人的云盘」，死磕 K12</strong>（详见第 7 章）。
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="chapter" id="refs" data-nav="References">
+  <h2><span class="num">09</span><span class="title-text">References 参考来源</span><span class="caret">▾</span></h2>
+  <div class="chapter-body">
+    <ol class="ref-list">
+      <li id="ref-1"><a href="https://www.bookfusion.com/reading/cloud-library" target="_blank" rel="noopener">Cloud Library & eBook Management | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-2"><a href="https://insiderphd.substack.com/p/i-migrated-all-of-my-ebooks-to-bookfusion" target="_blank" rel="noopener">I Migrated All of My eBooks to BookFusion | InsiderPhD</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 5 次</span></li>
+      <li id="ref-3"><a href="https://www.ereadersforum.com/threads/bookfusion-review-best-ebook-reader-app-for-syncing-organizing-reading-across-devices.6598/" target="_blank" rel="noopener">BookFusion Review: Best eBook Reader App | eReaders Forum</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-4"><a href="https://docs.bookfusion.com/docs/KOReader/koreader-sync" target="_blank" rel="noopener">KOReader Sync | BookFusion Docs</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-5"><a href="https://www.blog.bookfusion.com/introducing-the-bookfusion-obsidian-plugin-sync-epub-pdf-cbz-cbr-mobi-highlights-annotations-to-your-vault/" target="_blank" rel="noopener">Introducing the BookFusion Obsidian Plugin | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-6"><a href="https://www.bookfusion.com/terms" target="_blank" rel="noopener">Terms and Conditions | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-7"><a href="https://firstangelscaribbean.com/2018/08/27/case-study-bookfusion-limited/" target="_blank" rel="noopener">Case Study: BookFusion Limited | First Angels Caribbean</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 4 次</span></li>
+      <li id="ref-8"><a href="https://docs.bookfusion.com/docs/Calibre/" target="_blank" rel="noopener">Calibre Integration | BookFusion Docs</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-9"><a href="https://support.bookfusion.com/hc/en-us/articles/22095974337677" target="_blank" rel="noopener">Obsidian Sync | BookFusion Support</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-10"><a href="https://www.blog.bookfusion.com/introducing-smart-queries-smart-shelves-discover-organise-read-smarter/" target="_blank" rel="noopener">Smart Shelves | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-11"><a href="https://www.blog.bookfusion.com/bookfusion-web-2025-wrap-up-faster-pdfs-better-highlights-and-a-big-2026-roadmap/" target="_blank" rel="noopener">BookFusion Web 2025 Wrap-Up | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 4 次</span></li>
+      <li id="ref-12"><a href="https://www.blog.bookfusion.com/bookfusion-product-updates-free-plan-changes/" target="_blank" rel="noopener">Free Plan Changes | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-13"><a href="https://www.bookfusion.com/reading/pricing" target="_blank" rel="noopener">Pricing & Plans | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 6 次</span></li>
+      <li id="ref-14"><a href="https://www.blog.bookfusion.com/bookfusion-product-updates-free-plan-changes/" target="_blank" rel="noopener">Free Plan Changes | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 4 次</span></li>
+      <li id="ref-15"><a href="https://mwm.ai/apps/bookfusion/1141834096" target="_blank" rel="noopener">BookFusion App | MWM</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-16"><a href="https://www.bookfusion.com/business" target="_blank" rel="noopener">Business Solutions | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-17"><a href="https://apps.apple.com/us/app/bookfusion/id1141834096" target="_blank" rel="noopener">BookFusion | App Store</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-18"><a href="https://www.jamaicaobserver.com/2019/05/14/oxford-university-press-bookfusion-partner-on-digital-resources-for-caribbean-classrooms/" target="_blank" rel="noopener">Oxford-BookFusion Partnership | Jamaica Observer</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-19"><a href="https://www.bookfusion.com/libraries" target="_blank" rel="noopener">Libraries | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 5 次</span></li>
+      <li id="ref-20"><a href="https://jamaica-gleaner.com/article/business/20170106/bookfusion-adds-new-clients" target="_blank" rel="noopener">BookFusion Adds New Clients | Jamaica Gleaner</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-21"><a href="https://www.bookfusion.com/publishing" target="_blank" rel="noopener">Publishing | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 4 次</span></li>
+      <li id="ref-22"><a href="https://www.bookfusion.com/books" target="_blank" rel="noopener">Store | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 4 次</span></li>
+      <li id="ref-23"><a href="https://www.bookfusion.com/books/free" target="_blank" rel="noopener">Free Books | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-24"><a href="https://www.blog.bookfusion.com/introducing-the-bookfusion-affiliate-programme/" target="_blank" rel="noopener">Affiliate Programme | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-25"><a href="https://www.bookfusion.com/reading/pricing" target="_blank" rel="noopener">Pricing & Plans | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-26"><a href="https://blog.bookfusion.com/new-library-added-standard-ebooks/" target="_blank" rel="noopener">Standard eBooks Library | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-27"><a href="https://www.bookfusion.com/copyright" target="_blank" rel="noopener">Copyright Policy | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 4 次</span></li>
+      <li id="ref-28"><a href="https://www.bookfusion.com/terms" target="_blank" rel="noopener">Terms and Conditions | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-29"><a href="https://tracxn.com/d/companies/bookfusion/__JlCR7YEbGPtv31alA4WleYP8Qty1lh44iKseRPJ8dPk" target="_blank" rel="noopener">BookFusion Company Profile | Tracxn</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-30"><a href="https://www.bookfusion.com/magazines" target="_blank" rel="noopener">Magazines | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-31"><a href="https://firstangelscaribbean.com/2018/08/27/case-study-bookfusion-limited/" target="_blank" rel="noopener">Case Study: BookFusion Limited | First Angels Caribbean</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-32"><a href="https://firstangelscaribbean.com/2018/08/27/case-study-bookfusion-limited/" target="_blank" rel="noopener">Case Study: BookFusion Limited | First Angels Caribbean</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-33"><a href="https://www.crunchbase.com/organization/bookfusion" target="_blank" rel="noopener">BookFusion | Crunchbase</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-34"><a href="https://firstangelscaribbean.com/2018/08/27/case-study-bookfusion-limited/" target="_blank" rel="noopener">Case Study: BookFusion Limited | First Angels Caribbean</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-35"><a href="https://www.blog.bookfusion.com/bookfusion-web-2025-wrap-up-faster-pdfs-better-highlights-and-a-big-2026-roadmap/" target="_blank" rel="noopener">BookFusion 2025 Wrap-Up | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-36"><a href="https://www.bookrunch.org/comparison/bookfusion_vs_calibre/" target="_blank" rel="noopener">BookFusion vs Calibre | BookRunch</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-37"><a href="https://www.bookrunch.org/comparison/libby_vs_scribd/" target="_blank" rel="noopener">Libby vs Scribd | BookRunch</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-38"><a href="https://www.bookfusion.com/reading/calibre" target="_blank" rel="noopener">Calibre eBook Cloud & Device Sync | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-39"><a href="https://apps.apple.com/us/app/bookfusion/id1141834096" target="_blank" rel="noopener">BookFusion | App Store Reviews</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-40"><a href="https://www.blog.bookfusion.com/introducing-smart-queries-smart-shelves-discover-organise-read-smarter/" target="_blank" rel="noopener">Smart Shelves | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-41"><a href="https://insiderphd.substack.com/p/i-migrated-all-of-my-ebooks-to-bookfusion" target="_blank" rel="noopener">I Migrated All of My eBooks to BookFusion | InsiderPhD</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-42"><a href="https://www.bookfusion.com/business/features" target="_blank" rel="noopener">Benefits & Features | Business | BookFusion</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-43"><a href="https://x.com/bookfusionhq" target="_blank" rel="noopener">BookFusion on X</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-44"><a href="https://www.saashub.com/bookfusion-alternatives" target="_blank" rel="noopener">BookFusion Alternatives & Competitors | SaaSHub</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-45"><a href="https://www.bookrunch.org/comparison/apple_books_vs_google_play_books/" target="_blank" rel="noopener">Apple Books vs Google Play Books | BookRunch</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-46"><a href="https://homelabcompass.com/alternatives/self-hosted-ebook-library" target="_blank" rel="noopener">Self-Hosted Ebook Library | Homelab Compass</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-47"><a href="https://wiki.mobileread.com/wiki/OPDS" target="_blank" rel="noopener">OPDS | MobileRead Wiki</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 2 次</span></li>
+      <li id="ref-48"><a href="https://www.blog.bookfusion.com/realistic-voices-everywhere-you-read-introducing-realistic-text-to-speech-tts-streaming-offline-across-web-ios-android/" target="_blank" rel="noopener">Realistic TTS | BookFusion Blog</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 3 次</span></li>
+      <li id="ref-49"><a href="https://ebookfriendly.com/kindle-cloud-reader-tips-facts/" target="_blank" rel="noopener">Kindle Cloud Reader Tips | eBook Friendly</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-50"><a href="https://www.techbloat.com/moon-reader-pro-the-complete-guide-3.html" target="_blank" rel="noopener">Moon+ Reader Pro Guide | TechBloat</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+      <li id="ref-51"><a href="https://tracxn.com/d/companies/bookfusion/" target="_blank" rel="noopener">BookFusion Company Profile | Tracxn</a><span class="ref-meta"> · 访问 2026-09-16 · 引用 1 次</span></li>
+    </ol>
+  </div>
+</section>
+  <footer>
+    无忌 · Deep Research（L2）· 2026-09-16 · 仅供阿杰个人决策参考；数据与判例以原始来源为准。
+  </footer>
+</main>
+
+<button class="back-to-top" id="backToTop" aria-label="回到顶部">↑</button>
+<a href="index.html" class="back-fab" title="返回研究总目录">← 返回总目录</a>
+
+<script>
+// 进度条 + 回顶
+(function(){
+  var progress=document.getElementById('progress'), btt=document.getElementById('backToTop');
+  function onScroll(){
+    var h=document.documentElement, sc=h.scrollTop||document.body.scrollTop, mx=(h.scrollHeight-h.clientHeight)||1;
+    progress.style.width=(sc/mx*100)+'%';
+    if(sc>500){btt.classList.add('show');}else{btt.classList.remove('show');}
+  }
+  window.addEventListener('scroll',onScroll,{passive:true}); onScroll();
+  btt.addEventListener('click',function(){window.scrollTo({top:0,behavior:'smooth'});});
+})();
+// 主题切换
+(function(){
+  var t=document.getElementById('themeToggle'), b=document.body;
+  var saved=localStorage.getItem('bookfusion-cloud-library-research-theme'); if(saved){b.setAttribute('data-theme',saved);}
+  function upd(){t.textContent=b.getAttribute('data-theme')==='dark'?'☀️':'🌙';}
+  upd();
+  t.addEventListener('click',function(){var n=b.getAttribute('data-theme')==='dark'?'light':'dark';b.setAttribute('data-theme',n);localStorage.setItem('bookfusion-cloud-library-research-theme',n);upd();});
+})();
+// 章节折叠
+document.querySelectorAll('section.chapter > h2').forEach(function(h){
+  h.addEventListener('click',function(){h.parentElement.classList.toggle('collapsed');});
+});
+// FAQ 展开
+document.querySelectorAll('.faq-q').forEach(function(q){
+  q.addEventListener('click',function(){q.parentElement.classList.toggle('open');});
+});
+// 表格行高亮
+document.querySelectorAll('tbody tr').forEach(function(r){
+  r.addEventListener('click',function(){r.classList.toggle('row-highlight');});
+});
+// 左侧导航：抽屉 + scroll-spy
+(function(){
+  var nav=document.querySelector('nav.anchor-nav'),tog=document.getElementById('navToggle'),ov=document.getElementById('navOverlay');
+  if(nav&&tog&&ov){
+    function c(){nav.classList.remove('open');ov.classList.remove('show');}
+    tog.addEventListener('click',function(){var o=!nav.classList.contains('open');nav.classList.toggle('open',o);ov.classList.toggle('show',o);});
+    ov.addEventListener('click',c);
+    document.querySelectorAll('.anchor-list a').forEach(function(a){a.addEventListener('click',function(){if(window.innerWidth<=1040)c();});});
+  }
+  var links=document.querySelectorAll('.anchor-list a'), secs=[];
+  links.forEach(function(a){var el=document.getElementById(a.getAttribute('data-target'));if(el)secs.push({a:a,el:el});});
+  function spy(){
+    var pos=window.scrollY+120, cur=null;
+    secs.forEach(function(s){if(s.el.offsetTop<=pos)cur=s;});
+    links.forEach(function(a){a.classList.remove('active');});
+    if(cur){cur.a.classList.add('active');cur.a.scrollIntoView({block:'nearest'});}
+  }
+  window.addEventListener('scroll',spy,{passive:true});spy();
+})();
+// citation popover
+(function() {
+  let activePopover=null, activeTrigger=null, hideTimer=null;
+  function getRefContent(refid){var el=document.getElementById('ref-'+refid);return el?el.innerHTML:null;}
+  function positionPopover(pop,trigger){
+    var r=trigger.getBoundingClientRect(),popW=pop.offsetWidth,popH=pop.offsetHeight;
+    var left=r.left+window.scrollX;
+    if(left+popW>window.innerWidth-12)left=window.innerWidth-popW-12;
+    if(left<12)left=12;
+    var top=r.bottom+window.scrollY+6;
+    if(r.bottom+popH>window.innerHeight-12&&r.top>popH+12){top=r.top+window.scrollY-popH-6;}
+    pop.style.left=left+'px';pop.style.top=top+'px';
+  }
+  function showPopover(trigger){
+    if(activeTrigger===trigger&&activePopover)return;
+    if(activePopover){activePopover.remove();activePopover=null;}
+    var content=getRefContent(trigger.getAttribute('data-refid'));if(!content)return;
+    var pop=document.createElement('div');pop.className='cite-popover';pop.innerHTML=content;
+    document.body.appendChild(pop);positionPopover(pop,trigger);
+    activePopover=pop;activeTrigger=trigger;
+    pop.addEventListener('mouseenter',function(){if(hideTimer)clearTimeout(hideTimer);});
+    pop.addEventListener('mouseleave',scheduleHide);
+  }
+  function scheduleHide(){if(hideTimer)clearTimeout(hideTimer);hideTimer=setTimeout(function(){if(activePopover){activePopover.remove();activePopover=null;activeTrigger=null;}},200);}
+  function bindCites(){
+    document.querySelectorAll('sup.cite[data-refid]').forEach(function(sup){
+      sup.addEventListener('mouseenter',function(){showPopover(sup);});
+      sup.addEventListener('mouseleave',scheduleHide);
+      sup.addEventListener('click',function(e){e.preventDefault();e.stopPropagation();if(activeTrigger===sup&&activePopover){activePopover.remove();activePopover=null;activeTrigger=null;}else{showPopover(sup);}});
+    });
+    document.addEventListener('click',function(e){if(!activePopover)return;if(e.target.closest('.cite-popover')||e.target.closest('sup.cite'))return;activePopover.remove();activePopover=null;activeTrigger=null;});
+  }
+  if(document.readyState==='loading'){document.addEventListener('DOMContentLoaded',bindCites);}else{bindCites();}
+})();
+</script>
+<script>/* PDF-HIDE-REFS */
+(function(){
+  function hide(){document.querySelectorAll('section.chapter').forEach(function(s){var h=s.querySelector('h2');if(h&&/references|参考文献|参考来源/i.test(h.textContent)){s.setAttribute('data-printhidden','1');s.style.display='none';}});}
+  function show(){document.querySelectorAll('[data-printhidden]').forEach(function(s){s.style.display='';s.removeAttribute('data-printhidden');});}
+  window.addEventListener('beforeprint',hide);window.addEventListener('afterprint',show);
+})();
+</script>
+</body>
+</html>
